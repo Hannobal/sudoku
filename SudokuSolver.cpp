@@ -49,7 +49,7 @@ SudokuSolver::Result SudokuSolver::solve() {
 
 bool SudokuSolver::workFields() {
 	bool changed(false);
-	size_t nbFields=m_sudoku.size()*m_sudoku.size();
+	size_t nbFields=m_sudoku.sideLength()*m_sudoku.sideLength();
 	for(size_t field=0; field<nbFields; field++)
 		changed |= workField(field);
 	return changed;
@@ -58,9 +58,9 @@ bool SudokuSolver::workFields() {
 bool SudokuSolver::workRows()
 {
 	bool changed(false);
-	Sudoku::FieldGroup group(m_sudoku.size());
-	for(size_t i=0; i<m_sudoku.size(); i++) {
-		m_sudoku.getRow(i*m_sudoku.size(), group);
+	Sudoku::FieldGroup group(m_sudoku.sideLength());
+	for(size_t i=0; i<m_sudoku.sideLength(); i++) {
+		m_sudoku.getRow(i*m_sudoku.sideLength(), group);
 		changed |= workGroup(group);
 	}
 	return changed;
@@ -69,8 +69,8 @@ bool SudokuSolver::workRows()
 bool SudokuSolver::workColumns()
 {
 	bool changed(false);
-	Sudoku::FieldGroup group(m_sudoku.size());
-	for(size_t i=0; i<m_sudoku.size(); i++) {
+	Sudoku::FieldGroup group(m_sudoku.sideLength());
+	for(size_t i=0; i<m_sudoku.sideLength(); i++) {
 		m_sudoku.getColumn(i, group);
 		changed |= workGroup(group);
 	}
@@ -80,9 +80,9 @@ bool SudokuSolver::workColumns()
 bool SudokuSolver::workBlocks()
 {
 	bool changed(false);
-	Sudoku::FieldGroup group(m_sudoku.size());
-	for(size_t i=0; i<m_sudoku.size(); i++) {
-		m_sudoku.getBlock(i*m_sudoku.size(), group);
+	Sudoku::FieldGroup group(m_sudoku.sideLength());
+	for(size_t i=0; i<m_sudoku.sideLength(); i++) {
+		m_sudoku.getBlock(i*m_sudoku.sideLength(), group);
 		changed |= workGroup(group);
 	}
 	return changed;
@@ -91,7 +91,7 @@ bool SudokuSolver::workBlocks()
 bool SudokuSolver::workField(size_t fieldIndex)
 {
 	if(m_sudoku.nbPossible(fieldIndex)==1) {
-		for(size_t i=1; i<=m_sudoku.size(); i++) {
+		for(size_t i=1; i<=m_sudoku.sideLength(); i++) {
 			if(m_sudoku.isPossible(fieldIndex, i)) {
 				m_sudoku.enterSolution(fieldIndex, i);
 				return true;
@@ -107,7 +107,7 @@ bool SudokuSolver::workGroup(const Sudoku::FieldGroup& group)
 {
 	bool changed(false);
 	// loop all numbers
-	for(size_t i=1; i<=m_sudoku.size(); i++) {
+	for(size_t i=1; i<=m_sudoku.sideLength(); i++) {
 		size_t fieldIndex;
 		size_t nbPossible(0);
 		for(auto field : group) {
@@ -134,8 +134,8 @@ bool SudokuSolver::workGroup(const Sudoku::FieldGroup& group)
 void SudokuSolver::educatedGuess() {
 	// find field with minimum number of possibilities
 	size_t fieldIndex(999);
-	size_t minPossible(m_sudoku.size()+1);
-	size_t nbFields=m_sudoku.size()*m_sudoku.size();
+	size_t minPossible(m_sudoku.sideLength()+1);
+	size_t nbFields=m_sudoku.sideLength()*m_sudoku.sideLength();
 	for(size_t f=0; f<nbFields; f++) {
 		if(m_sudoku.isSolved(f))
 			continue;
@@ -172,7 +172,7 @@ void SudokuSolver::randomGuess() {
 			return;
 	}
 	// find fields with missing entries
-	size_t nbFields=m_sudoku.size()*m_sudoku.size();
+	size_t nbFields=m_sudoku.sideLength()*m_sudoku.sideLength();
 	Sudoku::FieldGroup fields;
 	for(size_t f=0; f<nbFields; f++) {
 		if((!m_sudoku.isSolved(f)) && m_sudoku.nbPossible(f)>0)
