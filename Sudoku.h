@@ -164,6 +164,9 @@ public:
 		clearSolution(xyToIndex(p));
 	}
 
+	/** Replaces the content with a trivial Sudoku. */
+	void trivialSolution();
+
 	/** get the field indices for a row */
 	void getRow(size_t fieldIndex, FieldGroup& row) const;
 	/** get the field indices for a row */
@@ -180,7 +183,16 @@ public:
 	/** get the field indices for the block containing the field at GridPoint p */
 	void getBlock(GridPoint p, FieldGroup& block) const;
 
+	/**
+	 * Read a Sudoku from a stream. Format is as follows:
+	 * - Sudoku must be a square array of fields
+	 * - each line corresponds to one row
+	 * - fields in each row/line separated by whitespace
+	 * - unsolved fields as "?"
+	 * - no comments allowed
+	 */
     friend std::istream& operator>>( std::istream  &input, Sudoku &sudoku );
+    friend std::ostream& operator<<( std::ostream  &output, Sudoku &sudoku );
 
 private:
 

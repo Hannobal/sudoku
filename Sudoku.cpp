@@ -139,6 +139,20 @@ void Sudoku::clearSolution(size_t fieldIndex)
 	m_nbSolved--;
 }
 
+void Sudoku::trivialSolution() {
+	GridPoint p;
+	size_t n(0);
+	for(p.y=0; p.y<m_sideLength; p.y++)  {
+		size_t blockY = p.y / m_blockHeight;
+		for(p.x=0; p.x<m_sideLength; p.x++) {
+			size_t f=xyToIndex(p);
+			m_possible[f].reset();
+			m_solution[f] = 1 + (n+m_blockWidth*p.y+blockY) % m_sideLength;
+			++n;
+		}
+	}
+}
+
 void Sudoku::getRow(GridPoint p, FieldGroup& row) const
 {
 	row.resize(m_sideLength);
@@ -218,6 +232,7 @@ std::istream &operator>>( std::istream  &input, Sudoku &sudoku ) {
 	std::shared_ptr<Sudoku> tmp;
 	while(getline(input,line)) {
 		std::vector<std::string> parts;
+		boost::trim(line);
 		boost::split(parts,line, boost::is_any_of("\t "), boost::token_compress_on);
 
 		if(size!=parts.size()) {
@@ -241,6 +256,22 @@ std::istream &operator>>( std::istream  &input, Sudoku &sudoku ) {
 
 	sudoku=*tmp;
 	return input;
+}
+
+std::ostream &operator<<( std::ostream  &output, Sudoku &sudoku ) {
+	GridPoint p;
+	for(p.y=0; p.y<sudoku.m_sideLength; p.y++)  {
+		for(p.x=0; p.x<sudoku.m_sideLength; p.x++) {
+			output << std::setw(4);
+			size_t s=sudoku.m_solution[sudoku.xyToIndex(p)];
+			if(s>0)
+				output << s;
+			else
+				output << '?';
+		}
+		output << std::endl;
+	}
+	return output;
 }
 
 void Sudoku::nearSquareFactors(size_t n, size_t& f1, size_t &f2)
