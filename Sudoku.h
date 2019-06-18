@@ -228,7 +228,7 @@ public:
 	/** swap two entire block columns x1 and x2.*/
 	void swapBlockColumns(size_t bc1, size_t bc2);
 
-	bool checkSanity();
+	bool checkSanity() const;
 
 	/**
 	 * Read a Sudoku from a stream. Format is as follows:
@@ -239,7 +239,7 @@ public:
 	 * - no comments allowed
 	 */
     friend std::istream& operator>>( std::istream  &input, Sudoku &sudoku );
-    friend std::ostream& operator<<( std::ostream  &output, Sudoku &sudoku );
+    friend std::ostream& operator<<( std::ostream  &output, Sudoku const& sudoku );
 
 private:
 
@@ -279,7 +279,7 @@ private:
 
 	void swapFields(size_t fieldIndex1, size_t fieldIndex2);
 
-	bool checkSanity(size_t fieldIndex, FieldGroup const& group);
+	bool checkSanity(size_t fieldIndex, FieldGroup const& group) const;
 
 	size_t m_sideLength; /**< The length of each row/column */
 	size_t m_blockWidth; /**< The width of a block */

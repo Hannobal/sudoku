@@ -298,7 +298,7 @@ void Sudoku::swapFields(size_t fieldIndex1, size_t fieldIndex2) {
 	std::swap(m_possible[fieldIndex1],m_possible[fieldIndex2]);
 }
 
-bool Sudoku::checkSanity() {
+bool Sudoku::checkSanity() const {
 	size_t max(nbFields());
 	for(size_t fieldIndex(0); fieldIndex<max; fieldIndex++) {
 		if(! isSolved(fieldIndex)) continue;
@@ -313,7 +313,7 @@ bool Sudoku::checkSanity() {
 	return true;
 }
 
-bool Sudoku::checkSanity(size_t fieldIndex, FieldGroup const& group) {
+bool Sudoku::checkSanity(size_t fieldIndex, FieldGroup const& group) const {
 	for(auto groupField : group) {
 		if(! isSolved(groupField)) continue;
 		if(groupField == fieldIndex) continue;
@@ -357,7 +357,7 @@ std::istream &operator>>( std::istream  &input, Sudoku &sudoku )
 	return input;
 }
 
-std::ostream &operator<<( std::ostream  &output, Sudoku &sudoku ) {
+std::ostream &operator<<( std::ostream  &output, Sudoku const& sudoku ) {
 	GridPoint p;
 	for(p.y=0; p.y<sudoku.m_sideLength; ++p.y)  {
 		for(p.x=0; p.x<sudoku.m_sideLength; ++p.x) {

@@ -1,4 +1,4 @@
-#include "SudokuSolver.h"
+#include "SudokuScrambler.h"
 #include "DynamicBitset.h"
 #include <iostream>
 #include <fstream>
@@ -11,9 +11,10 @@ int main(int argc, char** argv) {
 		sudoku.trivialSolution();
 		std::cout << sudoku;
 		std::cout << "is sane: " << sudoku.checkSanity() << std::endl;
-		sudoku.swapBlockRows(0, 2);
-		std::cout << std::endl << sudoku;
-		std::cout << "is sane: " << sudoku.checkSanity() << std::endl;
+		SudokuScrambler scrambler(sudoku);
+		scrambler.scramble();
+		std::cout << std::endl << scrambler.sudoku();
+		std::cout << "is sane: " << scrambler.sudoku().checkSanity() << std::endl;
 
 
 //		std::ofstream output(argv[1]);
