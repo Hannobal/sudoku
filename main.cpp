@@ -7,16 +7,23 @@ int main(int argc, char** argv) {
 //	Sudoku sudoku(9);
 	try {
 
-		Sudoku sudoku(16);
+		Sudoku sudoku(9);
 		sudoku.trivialSolution();
-		std::ofstream output(argv[1]);
-		output << sudoku;
-		output.close();
+		std::cout << sudoku;
+		std::cout << "is sane: " << sudoku.checkSanity() << std::endl;
+		sudoku.swapBlockRows(0, 2);
+		std::cout << std::endl << sudoku;
+		std::cout << "is sane: " << sudoku.checkSanity() << std::endl;
 
-		std::ifstream input(argv[1]);
-		Sudoku sudokuIn;
-		input >> sudokuIn;
-		sudokuIn.print();
+
+//		std::ofstream output(argv[1]);
+//		output << sudoku;
+//		output.close();
+//
+//		std::ifstream input(argv[1]);
+//		Sudoku sudokuIn;
+//		input >> sudokuIn;
+//		sudokuIn.print();
 //
 //		SudokuSolver solver(
 //				sudokuIn,

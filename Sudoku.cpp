@@ -1,5 +1,6 @@
 #include "Sudoku.h"
 #include <math.h>
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -7,6 +8,8 @@ Sudoku::Sudoku() :
 	m_sideLength(0),
 	m_blockWidth(0),
 	m_blockHeight(0),
+	m_nbBlockRows(0),
+	m_nbBlockColumns(0),
 	m_nbSolved(0) {}
 
 Sudoku::Sudoku(size_t length) :
@@ -18,7 +21,9 @@ Sudoku::Sudoku(size_t length) :
 	nearSquareFactors(length, m_blockHeight, m_blockWidth);
 	if(m_blockHeight==1)
 		throw std::runtime_error("invalid block size"+std::to_string(m_blockWidth)+"x"+std::to_string(m_blockHeight));
-	for(size_t i=0; i<m_possible.size();i++) {
+	m_nbBlockRows = m_sideLength/m_blockHeight;
+	m_nbBlockColumns = m_sideLength/m_blockWidth;
+	for(size_t i=0; i<m_possible.size(); ++i) {
 		m_possible[i].resize(length);
 		m_possible[i].set();
 	}
@@ -36,7 +41,9 @@ Sudoku::Sudoku(size_t length, size_t blockWidth) :
 		throw std::runtime_error("length "+std::to_string(m_sideLength)+" cannot be factorized with "+std::to_string(m_blockWidth));
 	if(length==blockWidth || blockWidth==1)
 		throw std::runtime_error("invalid block size"+std::to_string(m_blockWidth)+"x"+std::to_string(m_blockHeight));
-	for(size_t i=0; i<m_possible.size();i++) {
+	m_nbBlockRows = m_sideLength/m_blockHeight;
+	m_nbBlockColumns = m_sideLength/m_blockWidth;
+	for(size_t i=0; i<m_possible.size(); ++i) {
 		m_possible[i].resize(length);
 		m_possible[i].set();
 	}
@@ -45,7 +52,7 @@ Sudoku::Sudoku(size_t length, size_t blockWidth) :
 void Sudoku::getPossibleNumbers(size_t fieldIndex, std::vector<size_t>& numbers) {
 	numbers.resize(m_possible[fieldIndex].count());
 	size_t idx=0;
-	for(size_t i=1; i<=m_sideLength; i++)
+	for(size_t i=1; i<=m_sideLength; ++i)
 		if(isPossible(fieldIndex,i))
 			numbers[idx++]=i;
 	if(idx!=numbers.size())
@@ -55,10 +62,10 @@ void Sudoku::getPossibleNumbers(size_t fieldIndex, std::vector<size_t>& numbers)
 void Sudoku::print(size_t indent) const
 {
 	GridPoint p;
-	for(p.y=0; p.y<m_sideLength; p.y++)  {
+	for(p.y=0; p.y<m_sideLength; ++p.y)  {
 		if(indent>0)
 			std::cout << std::setw(indent) << "";
-		for(p.x=0; p.x<m_sideLength; p.x++) {
+		for(p.x=0; p.x<m_sideLength; ++p.x) {
 			std::cout << std::setw(4);
 			size_t s=m_solution[xyToIndex(p)];
 			if(s>0)
@@ -74,10 +81,10 @@ void Sudoku::printPossible(size_t number, size_t indent) const
 {
 	GridPoint p;
 	number--;
-	for(p.y=0; p.y<m_sideLength; p.y++)  {
+	for(p.y=0; p.y<m_sideLength; ++p.y)  {
 		if(indent>0)
 			std::cout << std::setw(indent) << "";
-		for(p.x=0; p.x<m_sideLength; p.x++) {
+		for(p.x=0; p.x<m_sideLength; ++p.x) {
 			std::cout << " " << m_possible[xyToIndex(p)][number];
 		}
 		std::cout << std::endl;
@@ -113,7 +120,7 @@ void Sudoku::enterSolution(size_t fieldIndex, size_t number)
 
 	m_solution[fieldIndex]=number;
 	m_possible[fieldIndex].reset();
-	m_nbSolved++;
+	++m_nbSolved;
 }
 
 void Sudoku::clearSolution(size_t fieldIndex)
@@ -123,7 +130,7 @@ void Sudoku::clearSolution(size_t fieldIndex)
 	size_t number=getSolution(fieldIndex);
 	m_solution[fieldIndex]=0;
 
-	for(size_t i=1; i<=m_sideLength;i++)
+	for(size_t i=1; i<=m_sideLength; ++i)
 		makePossible(fieldIndex,i);
 
 	FieldGroup group(m_sideLength);
@@ -142,9 +149,9 @@ void Sudoku::clearSolution(size_t fieldIndex)
 void Sudoku::trivialSolution() {
 	GridPoint p;
 	size_t n(0);
-	for(p.y=0; p.y<m_sideLength; p.y++)  {
+	for(p.y=0; p.y<m_sideLength; ++p.y)  {
 		size_t blockY = p.y / m_blockHeight;
-		for(p.x=0; p.x<m_sideLength; p.x++) {
+		for(p.x=0; p.x<m_sideLength; ++p.x) {
 			size_t f=xyToIndex(p);
 			m_possible[f].reset();
 			m_solution[f] = 1 + (n+m_blockWidth*p.y+blockY) % m_sideLength;
@@ -156,7 +163,7 @@ void Sudoku::trivialSolution() {
 void Sudoku::getRow(GridPoint p, FieldGroup& row) const
 {
 	row.resize(m_sideLength);
-	for(p.x=0; p.x<m_sideLength; p.x++)
+	for(p.x=0; p.x<m_sideLength; ++p.x)
 		row[p.x] = xyToIndex(p);
 }
 
@@ -164,14 +171,14 @@ void Sudoku::getRow(size_t fieldIndex, FieldGroup& row) const
 {
 	row.resize(m_sideLength);
 	size_t min=m_sideLength*(fieldIndex/m_sideLength);
-	for(size_t x=0; x<m_sideLength; x++)
+	for(size_t x=0; x<m_sideLength; ++x)
 		row[x] = min+x;
 }
 
 void Sudoku::getColumn(GridPoint p, FieldGroup& col) const
 {
 	col.resize(m_sideLength);
-	for(p.y=0; p.y<m_sideLength; p.y++)
+	for(p.y=0; p.y<m_sideLength; ++p.y)
 		col[p.y] = xyToIndex(p);
 }
 
@@ -179,7 +186,7 @@ void Sudoku::getColumn(size_t fieldIndex, FieldGroup& col) const
 {
 	col.resize(m_sideLength);
 	size_t offset=fieldIndex%m_sideLength;
-	for(size_t y=0; y<m_sideLength; y++)
+	for(size_t y=0; y<m_sideLength; ++y)
 		col[y] = y*m_sideLength+offset;
 }
 
@@ -198,8 +205,8 @@ void Sudoku::getBlock(GridPoint p, FieldGroup& block) const
 	size_t xMin=m_blockWidth*(p.x/m_blockWidth); size_t xMax=xMin+m_blockWidth;
 	size_t yMin=m_blockHeight*(p.y/m_blockHeight); size_t yMax=yMin+m_blockHeight;
 	size_t i(0);
-	for(p.x=xMin; p.x<xMax; p.x++) {
-		for(p.y=yMin; p.y<yMax; p.y++) {
+	for(p.x=xMin; p.x<xMax; ++p.x) {
+		for(p.y=yMin; p.y<yMax; ++p.y) {
 			block[i++] = xyToIndex(p);
 		}
 	}
@@ -225,7 +232,99 @@ bool Sudoku::checkPossible(size_t fieldIndex, size_t i) {
 	return true;
 }
 
-std::istream &operator>>( std::istream  &input, Sudoku &sudoku ) {
+void Sudoku::swapRows(size_t r1, size_t r2)
+{
+	if(r1 >= m_sideLength || r2 >= m_sideLength)
+		throw std::runtime_error("Sudoku::swapRows: row index out of range");
+
+	if(r1==r2) return;
+
+	if(r1/m_blockHeight != r2/m_blockHeight)
+		throw std::runtime_error("Sudoku::swapRows: rows are not in the same block row");
+
+	size_t f1(xyToIndex(GridPoint(0,r1)));
+	size_t f2(xyToIndex(GridPoint(0,r2)));
+	for(size_t x=0;x<m_sideLength; ++x, f1+=m_sideLength, f2+=m_sideLength)
+		swapFields(f1,f2);
+}
+
+void Sudoku::swapColumns(size_t c1, size_t c2)
+{
+	if(c1 >= m_sideLength || c2 >= m_sideLength)
+		throw std::runtime_error("Sudoku::swapColumns: column index out of range");
+
+	if(c1==c2) return;
+
+	if(c1/m_blockWidth != c2/m_blockWidth)
+		throw std::runtime_error("Sudoku::swapColumns: columns are not in the same block column");
+
+	size_t f1(xyToIndex(GridPoint(c1,0)));
+	size_t f2(xyToIndex(GridPoint(c2,0)));
+	for(size_t y=0; y<m_sideLength; ++y, ++f1, ++f2)
+		swapFields(f1,f2);
+}
+
+void Sudoku::swapBlockRows(size_t br1, size_t br2)
+{
+	if(br1 >= m_nbBlockRows || br2 >= m_nbBlockRows)
+		throw std::runtime_error("Sudoku::swapBlockRows: block row index out of range");
+	if(br1==br2) return;
+	for(size_t x=0; x<m_sideLength; ++x) {
+		size_t f1(xyToIndex(GridPoint(x,br1*m_blockHeight)));
+		size_t f2(xyToIndex(GridPoint(x,br2*m_blockHeight)));
+		for(size_t y=0; y<m_blockHeight; ++y, ++f1, ++f2) {
+			swapFields(f1,f2);
+		}
+	}
+}
+
+void Sudoku::swapBlockColumns(size_t bc1, size_t bc2)
+{
+	if(bc1 >= m_nbBlockColumns || bc2 >= m_nbBlockColumns)
+		throw std::runtime_error("Sudoku::swapBlockColumns: block column index out of range");
+	if(bc1==bc2) return;
+
+	size_t f1(xyToIndex(GridPoint(bc1*m_blockWidth,0)));
+	size_t f2(xyToIndex(GridPoint(bc2*m_blockWidth,0)));
+	for(size_t x=0; x<m_blockWidth; ++x) {
+		for(size_t y=0; y<m_sideLength; ++y, ++f1, ++f2) {
+			swapFields(f1,f2);
+		}
+	}
+}
+
+void Sudoku::swapFields(size_t fieldIndex1, size_t fieldIndex2) {
+	std::swap(m_solution[fieldIndex1],m_solution[fieldIndex2]);
+	std::swap(m_possible[fieldIndex1],m_possible[fieldIndex2]);
+}
+
+bool Sudoku::checkSanity() {
+	size_t max(nbFields());
+	for(size_t fieldIndex(0); fieldIndex<max; fieldIndex++) {
+		if(! isSolved(fieldIndex)) continue;
+		FieldGroup group;
+		getRow(fieldIndex, group);
+		if(! checkSanity(fieldIndex, group)) return false;
+		getColumn(fieldIndex, group);
+		if(! checkSanity(fieldIndex, group)) return false;
+		getBlock(fieldIndex, group);
+		if(! checkSanity(fieldIndex, group)) return false;
+	}
+	return true;
+}
+
+bool Sudoku::checkSanity(size_t fieldIndex, FieldGroup const& group) {
+	for(auto groupField : group) {
+		if(! isSolved(groupField)) continue;
+		if(groupField == fieldIndex) continue;
+		if(m_solution[groupField] == m_solution[fieldIndex])
+			return false;
+	}
+	return true;
+}
+
+std::istream &operator>>( std::istream  &input, Sudoku &sudoku )
+{
 	std::string line;
 	size_t size=0;
 	GridPoint p;
@@ -245,7 +344,7 @@ std::istream &operator>>( std::istream  &input, Sudoku &sudoku ) {
 		if(size==0)
 			throw std::runtime_error("empty sudoku");
 
-		for(p.x=0; p.x<size; p.x++) {
+		for(p.x=0; p.x<size; ++p.x) {
 			if(parts[p.x]=="?") continue;
 			size_t nb = boost::lexical_cast<size_t>(parts[p.x]);
 			tmp->enterSolution(p, nb);
@@ -260,8 +359,8 @@ std::istream &operator>>( std::istream  &input, Sudoku &sudoku ) {
 
 std::ostream &operator<<( std::ostream  &output, Sudoku &sudoku ) {
 	GridPoint p;
-	for(p.y=0; p.y<sudoku.m_sideLength; p.y++)  {
-		for(p.x=0; p.x<sudoku.m_sideLength; p.x++) {
+	for(p.y=0; p.y<sudoku.m_sideLength; ++p.y)  {
+		for(p.x=0; p.x<sudoku.m_sideLength; ++p.x) {
 			output << std::setw(4);
 			size_t s=sudoku.m_solution[sudoku.xyToIndex(p)];
 			if(s>0)

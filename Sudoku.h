@@ -37,6 +37,25 @@ struct GridPoint {
  * The Sudoku may have an arbitrary length N provided that it
  * is factorizable into a block width and height (i.e. not a prime number).
  * Fields are indexed column-major.
+ *
+ * Terminology:
+ *
+ * column: 0  1   2    3  4  5    6  7  8
+ *       +----------+----------+----------+
+ * row 0 | 0  9  18 | 27 36 45 | 54 63 72 |
+ * row 1 | 1 10  19 | 28 37 46 | 55 64 73 | block row 0
+ * row 2 | 2 11  20 | 29 38 47 | 56 65 74 |
+ *       +----------+----------+----------+
+ * row 3 | 3 12  21 | 30 39 48 | 57 66 75 |
+ * row 4 | 4 13  22 | 31 40 49 | 58 67 76 | block row 1
+ * row 5 | 5 14  23 | 32 41 50 | 59 68 77 |
+ *       +----------+----------+----------+
+ * row 6 | 6 15  24 | 33 42 51 | 60 69 78 |
+ * row 7 | 7 16  25 | 34 43 52 | 61 70 79 | block row 2
+ * row 8 | 8 17  26 | 35 44 53 | 62 71 80 |
+ *       +----------+----------+----------+
+ *          block      block      block
+ *         column 0   column 1   column 2
  */
 
 class Sudoku {
@@ -70,9 +89,21 @@ public:
 	/** Returns the side length of the Sudoku. */
 	size_t sideLength() const {return m_sideLength;}
 
-	/// Returns the total number of fields in the sudoku
-	/// (=sideLength*sideLength).
+	/** Returns the total number of fields
+	 * (=sideLength*sideLength). */
 	size_t nbFields() const {return m_sideLength*m_sideLength;}
+
+	/** Returns the width of each block. */
+	size_t blockWidth() const {return m_blockWidth;}
+
+	/** Returns the height of each block. */
+	size_t blockHeight() const {return m_blockHeight;}
+
+	/** Returns the number of block rows. */
+	size_t nbBlockRows() const {return m_nbBlockRows;}
+
+	/** Returns the number of block rows. */
+	size_t nbBlockColumns() const {return m_nbBlockColumns;}
 
 	/*
 	 * Check if a given number can be entered into a field.
@@ -183,6 +214,22 @@ public:
 	/** get the field indices for the block containing the field at GridPoint p */
 	void getBlock(GridPoint p, FieldGroup& block) const;
 
+	/** swap two entire rows y1 and y2. Throws if the two
+	 * rows are in different block rows*/
+	void swapRows(size_t r1, size_t r2);
+
+	/** swap two entire columns x1 and x2. Throws if the two
+	 * columns are in different block columns*/
+	void swapColumns(size_t c1, size_t c2);
+
+	/** swap two entire block rows y1 and y2.*/
+	void swapBlockRows(size_t br1, size_t br2);
+
+	/** swap two entire block columns x1 and x2.*/
+	void swapBlockColumns(size_t bc1, size_t bc2);
+
+	bool checkSanity();
+
 	/**
 	 * Read a Sudoku from a stream. Format is as follows:
 	 * - Sudoku must be a square array of fields
@@ -230,9 +277,15 @@ private:
 	 *  with f1 <= f2 */
 	void nearSquareFactors(size_t n, size_t& f1, size_t &f2);
 
-	size_t m_sideLength; /**< The length of each row/column in the Sudoku */
-	size_t m_blockWidth; /**< The width of a block in the Sudoku */
-	size_t m_blockHeight; /**< The height of a block in the Sudoku */
+	void swapFields(size_t fieldIndex1, size_t fieldIndex2);
+
+	bool checkSanity(size_t fieldIndex, FieldGroup const& group);
+
+	size_t m_sideLength; /**< The length of each row/column */
+	size_t m_blockWidth; /**< The width of a block */
+	size_t m_blockHeight; /**< The height of a block */
+	size_t m_nbBlockRows; /**< The number of block rows */
+	size_t m_nbBlockColumns; /**< The number of block columns */
 
 	size_t m_nbSolved; /**< The number of fields that have already been solved */
 
