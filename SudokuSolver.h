@@ -14,8 +14,7 @@ public:
 
 	enum class Mode : char {
 		Deterministic,
-		RandomGuessing,
-		NoAmbiguityResolution
+		RandomGuessing
 	};
 	enum class Result : char {
 		solved, impossible, ambiguos
@@ -24,6 +23,7 @@ public:
 	SudokuSolver(
 			Sudoku const& sudoku,
 			Mode mode = Mode::Deterministic,
+			int maxAmbiguities=-1,
 			size_t maxResults=std::numeric_limits<size_t>::max(),
 			size_t depth=0
 	);
@@ -31,12 +31,16 @@ public:
 	Result solve();
 
 	ResultList getSolved() {return m_results;}
-	Sudoku const& getWorkingVersion() {return m_sudoku;}
+
+	Sudoku const& getWorkingVersion() const {return m_sudoku;}
+
+	Sudoku & getWorkingVersion() {return m_sudoku;}
 
 private:
 
 	Sudoku m_sudoku;
 	Mode m_mode;
+	int m_maxAmbiguities;
 	size_t m_maxResults;
 	size_t m_depth;
 	ResultList m_results;

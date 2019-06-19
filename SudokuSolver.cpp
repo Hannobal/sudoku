@@ -6,11 +6,13 @@
 SudokuSolver::SudokuSolver(
 		Sudoku const& sudoku,
 		Mode mode,
+		int maxAmbiguities,
 		size_t maxResults,
 		size_t depth
 ) :
 		m_sudoku(sudoku),
 		m_mode(mode),
+		m_maxAmbiguities(maxAmbiguities),
 		m_maxResults(maxResults),
 		m_depth(depth+1)
 {}
@@ -33,7 +35,7 @@ SudokuSolver::Result SudokuSolver::solve() {
 		}
 	}
 
-	if(m_mode==Mode::NoAmbiguityResolution)
+	if(m_maxAmbiguities>=0 && m_sudoku.nbGuesses()>=m_maxAmbiguities)
 		return Result::ambiguos;
 
 	if(m_mode==Mode::Deterministic)
@@ -152,7 +154,7 @@ void SudokuSolver::educatedGuess() {
 	m_sudoku.getPossibleNumbers(fieldIndex, numbers);
 	for(auto i : numbers) {
 		Sudoku tmp(m_sudoku);
-		tmp.enterSolution(fieldIndex, i);
+		tmp.enterSolution(fieldIndex, i, true);
 		SudokuSolver solver(tmp,m_mode,m_maxResults,m_depth);
 		if(solver.solve() == Result::solved) {
 			// move results from child solver
@@ -187,7 +189,7 @@ void SudokuSolver::randomGuess() {
         std::shuffle(numbers.begin(),numbers.end(),randEngine);
         for(auto nb : numbers) {
 			Sudoku tmp(m_sudoku);
-			tmp.enterSolution(fieldIndex, nb);
+			tmp.enterSolution(fieldIndex, nb, true);
 			SudokuSolver solver(tmp,m_mode,m_maxResults,m_depth);
 			Result res = solver.solve();
 			if(res == Result::solved) {

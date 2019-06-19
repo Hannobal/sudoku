@@ -137,11 +137,24 @@ public:
 		return nbPossible(xyToIndex(p));
 	}
 
-	/*
-	 * Count the numbers that could potentially still be entered
-	 * into a field. Returns 0 if the field already has a number entered.
-	 */
+	/* The number of fields that already contain a solution */
 	size_t nbSolved() { return m_nbSolved; }
+
+	/*
+	 * Sets the number of guesses. In a solution process, there may be
+	 * situations, where there is no definite solution and guessing may
+	 * be necessary. A solver may set this to keep track of how many guesses
+	 * were required.
+	 */
+	void nbGuesses(int guesses) { m_nbGuesses = guesses; }
+
+	/*
+	 * Returns the number of guesses. In a solution process, there may be
+	 * situations, where there is no definite solution and guessing may
+	 * be necessary. A solver may set this to keep track of how many guesses
+	 * were required.
+	 */
+	int nbGuesses() { return m_nbGuesses; }
 
 	 /** Check if the field already has a number entered. */
 	bool isSolved(size_t fieldIndex) const {
@@ -178,11 +191,11 @@ public:
 	size_t getSolution(GridPoint const& p) {return getSolution(xyToIndex(p));}
 
 	/** Enter a number into a field. Throws if the number conflicts the rules */
-	void enterSolution(size_t fieldIndex, size_t number);
+	void enterSolution(size_t fieldIndex, size_t number, bool guessed=false);
 
 	/** Enter a number into a field. Throws if the number conflicts the rules */
-	void enterSolution(GridPoint const& p, size_t number) {
-		enterSolution(xyToIndex(p),number);
+	void enterSolution(GridPoint const& p, size_t number, bool guessed=false) {
+		enterSolution(xyToIndex(p),number, guessed);
 	}
 
 	/** Removes the number entered in a certain field and re-evaluates the
@@ -288,6 +301,7 @@ private:
 	size_t m_nbBlockColumns; /**< The number of block columns */
 
 	size_t m_nbSolved; /**< The number of fields that have already been solved */
+	int m_nbGuesses; /**< The number of ambiguities, that have been resolved */
 
 	// each field has a bitset of length "size" which for each number
 	// states whether it's still possible to enter this number

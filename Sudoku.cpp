@@ -10,11 +10,13 @@ Sudoku::Sudoku() :
 	m_blockHeight(0),
 	m_nbBlockRows(0),
 	m_nbBlockColumns(0),
-	m_nbSolved(0) {}
+	m_nbSolved(0),
+	m_nbGuesses(0) {}
 
 Sudoku::Sudoku(size_t length) :
 	m_sideLength(length),
 	m_nbSolved(0),
+	m_nbGuesses(0),
 	m_possible(length*length),
 	m_solution(length*length)
 {
@@ -34,6 +36,7 @@ Sudoku::Sudoku(size_t length, size_t blockWidth) :
 	m_blockWidth(blockWidth),
 	m_blockHeight(length/blockWidth),
 	m_nbSolved(0),
+	m_nbGuesses(0),
 	m_possible(length*length),
 	m_solution(length*length)
 {
@@ -91,7 +94,7 @@ void Sudoku::printPossible(size_t number, size_t indent) const
 	}
 }
 
-void Sudoku::enterSolution(size_t fieldIndex, size_t number)
+void Sudoku::enterSolution(size_t fieldIndex, size_t number, bool guessed)
 {
 	if(number==0)
 		return clearSolution(fieldIndex);
@@ -105,7 +108,6 @@ void Sudoku::enterSolution(size_t fieldIndex, size_t number)
 
 	if(!isPossible(fieldIndex,number))
 		throw std::runtime_error("Sudoku::enterSolution: Invalid number " + std::to_string(number));
-
 
 	FieldGroup group(m_sideLength);
 	getRow(fieldIndex,group);
@@ -121,6 +123,8 @@ void Sudoku::enterSolution(size_t fieldIndex, size_t number)
 	m_solution[fieldIndex]=number;
 	m_possible[fieldIndex].reset();
 	++m_nbSolved;
+	if(guessed)
+		++m_nbGuesses;
 }
 
 void Sudoku::clearSolution(size_t fieldIndex)

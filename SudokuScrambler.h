@@ -8,7 +8,9 @@ class SudokuScrambler {
 public:
 	SudokuScrambler(Sudoku const& sudoku);
 
-	Sudoku const& sudoku() { return m_sudoku; }
+	Sudoku const& sudoku() const { return m_sudoku; }
+
+	Sudoku & sudoku() { return m_sudoku; }
 
 	size_t totSteps() { return m_totSteps; }
 
