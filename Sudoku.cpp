@@ -297,9 +297,68 @@ void Sudoku::swapBlockColumns(size_t bc1, size_t bc2)
 	}
 }
 
+void Sudoku::transpose() {
+	GridPoint p1;
+	for(p1.x=0; p1.x<m_sideLength; ++p1.x) {
+		for(p1.y=0; p1.y<p1.x; ++p1.y) {
+			GridPoint p2(p1.y, p1.x);
+			swapFields(xyToIndex(p1),xyToIndex(p2));
+		}
+	}
+	swapBlockOrientation();
+}
+
+void Sudoku::invert() {
+	size_t max(nbFields());
+	size_t maxHalf(max/2);
+	for(size_t f1(0); f1<maxHalf; f1++) {
+		swapFields(f1, max-f1-1);
+	}
+	swapBlockOrientation();
+}
+
+void Sudoku::flipHorizontal() {
+	size_t xMax(m_sideLength/2);
+	GridPoint p1;
+	for(p1.x=0; p1.x<xMax; ++p1.x) {
+		for(p1.y=0; p1.y<m_sideLength; ++p1.y) {
+			GridPoint p2(m_sideLength-1-p1.x, p1.y);
+			swapFields(xyToIndex(p1),xyToIndex(p2));
+		}
+	}
+}
+
+void Sudoku::flipVertical() {
+	size_t yMax(m_sideLength/2);
+	GridPoint p1;
+	for(p1.x=0; p1.x<m_sideLength; ++p1.x) {
+		for(p1.y=0; p1.y<yMax; ++p1.y) {
+			GridPoint p2(p1.x, m_sideLength-1-p1.y);
+			swapFields(xyToIndex(p1),xyToIndex(p2));
+		}
+	}
+}
+
+void Sudoku::rotateRight() {
+	// not very efficient, but does the trick
+	transpose();
+	flipHorizontal();
+}
+
+void Sudoku::rotateLeft() {
+	// not very efficient, but does the trick
+	transpose();
+	flipVertical();
+}
+
 void Sudoku::swapFields(size_t fieldIndex1, size_t fieldIndex2) {
 	std::swap(m_solution[fieldIndex1],m_solution[fieldIndex2]);
 	std::swap(m_possible[fieldIndex1],m_possible[fieldIndex2]);
+}
+
+void Sudoku::swapBlockOrientation() {
+	std::swap(m_blockHeight,m_blockWidth);
+	std::swap(m_nbBlockRows,m_nbBlockColumns);
 }
 
 bool Sudoku::checkSanity() const {

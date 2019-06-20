@@ -15,7 +15,32 @@ int main(int argc, char** argv) {
 			return 1;
 		}
 
-		if(std::string(argv[1])=="generate") {
+		if(std::string(argv[1])=="test") {
+
+			Sudoku sudoku(9);
+			sudoku.trivialSolution();
+			sudoku.print();
+			std::cout << sudoku.checkSanity() << std::endl << std::endl;
+			sudoku.transpose();
+			sudoku.print();
+			std::cout << "after transpose: " << sudoku.checkSanity() << std::endl << std::endl;
+			sudoku.invert();
+			sudoku.print();
+			std::cout << "after invert: " << sudoku.checkSanity() << std::endl << std::endl;
+			sudoku.flipHorizontal();
+			sudoku.print();
+			std::cout << "after flipHorizontal: " << sudoku.checkSanity() << std::endl << std::endl;
+			sudoku.flipVertical();
+			sudoku.print();
+			std::cout << "after flipVertical: " << sudoku.checkSanity() << std::endl << std::endl;
+			sudoku.rotateRight();
+			sudoku.print();
+			std::cout << "after rotateRight: " << sudoku.checkSanity() << std::endl << std::endl;
+			sudoku.rotateLeft();
+			sudoku.print();
+			std::cout << "after rotateLeft: " << sudoku.checkSanity() << std::endl << std::endl;
+
+		} else if(std::string(argv[1])=="generate") {
 
 			if(argc<4)
 				throw std::runtime_error("generate needs two additional arguments: <size> <difficulty>");

@@ -227,6 +227,13 @@ public:
 	/** get the field indices for the block containing the field at GridPoint p */
 	void getBlock(GridPoint p, FieldGroup& block) const;
 
+	void transpose();
+	void invert();
+	void flipHorizontal();
+	void flipVertical();
+	void rotateRight();
+	void rotateLeft();
+
 	/** swap two entire rows y1 and y2. Throws if the two
 	 * rows are in different block rows*/
 	void swapRows(size_t r1, size_t r2);
@@ -291,6 +298,8 @@ private:
 	void nearSquareFactors(size_t n, size_t& f1, size_t &f2);
 
 	void swapFields(size_t fieldIndex1, size_t fieldIndex2);
+
+	void swapBlockOrientation();
 
 	bool checkSanity(size_t fieldIndex, FieldGroup const& group) const;
 
