@@ -62,13 +62,15 @@ void Sudoku::getPossibleNumbers(size_t fieldIndex, std::vector<size_t>& numbers)
 		throw std::runtime_error("idx="+std::to_string(idx)+" != size="+std::to_string(numbers.size()));
 }
 
-void Sudoku::print(size_t indent) const
+void Sudoku::print() const
 {
 	GridPoint p;
 	for(p.y=0; p.y<m_sideLength; ++p.y)  {
-		if(indent>0)
-			std::cout << std::setw(indent) << "";
+		if(p.y % m_blockHeight == 0)
+			printFrameLine();
 		for(p.x=0; p.x<m_sideLength; ++p.x) {
+			if(p.x % m_blockWidth == 0)
+				std::cout << "|";
 			std::cout << std::setw(4);
 			size_t s=m_solution[xyToIndex(p)];
 			if(s>0)
@@ -76,8 +78,17 @@ void Sudoku::print(size_t indent) const
 			else
 				std::cout << '?';
 		}
-		std::cout << std::endl;
+		std::cout << "|" << std::endl;
 	}
+	printFrameLine();
+}
+
+void Sudoku::printFrameLine() const {
+	int blockw(static_cast<int>(m_blockWidth)*4);
+	std::cout << std::setfill('-');
+	for(size_t i(0); i<m_nbBlockColumns; i++)
+		std::cout << "+" << std::setw(blockw) << "";
+	std::cout << std::setfill(' ') << "+" << std::endl;
 }
 
 void Sudoku::printPossible(size_t number, size_t indent) const
@@ -314,7 +325,6 @@ void Sudoku::invert() {
 	for(size_t f1(0); f1<maxHalf; f1++) {
 		swapFields(f1, max-f1-1);
 	}
-	swapBlockOrientation();
 }
 
 void Sudoku::flipHorizontal() {

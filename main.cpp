@@ -6,7 +6,6 @@
 #include <stdlib.h>
 
 int main(int argc, char** argv) {
-//	Sudoku sudoku(9);
 	try {
 		if(argc<2) {
 			std::cout << "input format:" << std::endl;
@@ -16,8 +15,8 @@ int main(int argc, char** argv) {
 		}
 
 		if(std::string(argv[1])=="test") {
-
-			Sudoku sudoku(9);
+			int size=atoi(argv[2]);
+			Sudoku sudoku(size);
 			sudoku.trivialSolution();
 			sudoku.print();
 			std::cout << sudoku.checkSanity() << std::endl << std::endl;

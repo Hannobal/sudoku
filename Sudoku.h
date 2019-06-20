@@ -176,7 +176,7 @@ public:
 	void getPossibleNumbers(size_t fieldIndex, std::vector<size_t>& numbers);
 
 	/** Prints the sudoku to stdout */
-	void print(size_t indent=0) const;
+	void print() const;
 
 	/** Prints a boolean map of fields where the number
 	 * can potentially still be entered */
@@ -262,6 +262,8 @@ public:
     friend std::ostream& operator<<( std::ostream  &output, Sudoku const& sudoku );
 
 private:
+
+	void printFrameLine() const;
 
 	/** convert GridPoint p to the corresponding field index */
 	size_t xyToIndex(GridPoint const& p) const {
