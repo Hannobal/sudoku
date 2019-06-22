@@ -33,19 +33,25 @@ public:
 
 	SudokuGenerator(Settings && settings, Sudoku && sudoku);
 
-	void generate();
+	bool generate();
 
-	Sudoku & sudoku() { return m_sudoku; }
+	Sudoku & getSudoku() { return m_sudoku; }
+
+	Sudoku & getSolution() { return m_solution; }
 
 	Sudoku const& sudoku() const { return m_sudoku; }
 
 
-private:
 
-	bool tryRemoveSolution(bool allowAmbiguity);
+private:
+	void scramble();
+
+	bool tryRemoveSolution(Sudoku sudoku, int depth);
 
 	Settings m_settings;
 	Sudoku m_sudoku;
+	Sudoku m_solution;
+    float m_targetFilledRatio;
 
     std::random_device m_randomDevice;
     std::default_random_engine m_randomEngine;

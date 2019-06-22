@@ -113,8 +113,11 @@ void Sudoku::enterSolution(size_t fieldIndex, size_t number, bool guessed)
 	if(isSolved(fieldIndex)) {
 		if(number==m_solution[fieldIndex])
 			return;
-		else
-			throw std::runtime_error("Sudoku::enterSolution: Field is already solved");
+		else {
+			std::cout << "ERROR:\n" << *this << std::endl;
+			throw std::runtime_error("Sudoku::enterSolution: Field "
+					+std::to_string(fieldIndex)+" is already solved");
+		}
 	}
 
 	if(!isPossible(fieldIndex,number))
@@ -173,6 +176,20 @@ void Sudoku::trivialSolution() {
 			++n;
 		}
 	}
+	m_nbSolved=nbFields();
+}
+
+void Sudoku::getSolvedOrUnsolvedFields(FieldGroup& solvedFields, bool solved) const {
+	size_t nFields = nbFields();
+	solvedFields.resize(nbSolved());
+	size_t fieldIndex(0);
+	for(size_t nsolved=0; nsolved<nbSolved();nsolved++) {
+		while(solved != isSolved(fieldIndex)) {
+			if(fieldIndex++==nFields)
+				throw std::runtime_error("Sudoku::getSolvedFields reached the end of the field list");
+		}
+		solvedFields[nsolved]=fieldIndex++;
+	}
 }
 
 void Sudoku::getRow(GridPoint p, FieldGroup& row) const
@@ -228,6 +245,8 @@ void Sudoku::getBlock(GridPoint p, FieldGroup& block) const
 }
 
 bool Sudoku::checkPossible(size_t fieldIndex, size_t i) {
+	if(m_solution[fieldIndex]!=0 && m_solution[fieldIndex]!=i)
+		return false;
 	FieldGroup group(m_sideLength);
 	getRow(fieldIndex,group);
 	for(auto field : group)
@@ -393,6 +412,19 @@ bool Sudoku::checkSanity(size_t fieldIndex, FieldGroup const& group) const {
 		if(m_solution[groupField] == m_solution[fieldIndex])
 			return false;
 	}
+	return true;
+}
+
+bool Sudoku::operator==(Sudoku const& other) {
+	if(m_sideLength != other.m_sideLength) return false;
+	if(m_blockWidth != other.m_blockWidth) return false;
+	// blockHeight, nbBlockRows and nbBlockColumns are dependent on the above
+	// and thus do not need to be checked here
+
+	size_t max(nbFields());
+	for(size_t fieldIndex(0); fieldIndex<max; fieldIndex++)
+		if(m_solution[fieldIndex] != other.m_solution[fieldIndex]) return false;
+
 	return true;
 }
 

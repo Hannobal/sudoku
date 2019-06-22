@@ -138,7 +138,13 @@ public:
 	}
 
 	/* The number of fields that already contain a solution */
-	size_t nbSolved() { return m_nbSolved; }
+	size_t nbSolved() const { return m_nbSolved; }
+
+	/* The number of fields that already contain a solution */
+	float solvedRatio() const {
+		return static_cast<float>(m_nbSolved) /
+				static_cast<float>(nbFields());
+	}
 
 	/*
 	 * Sets the number of guesses. In a solution process, there may be
@@ -154,7 +160,7 @@ public:
 	 * be necessary. A solver may set this to keep track of how many guesses
 	 * were required.
 	 */
-	int nbGuesses() { return m_nbGuesses; }
+	int nbGuesses() const { return m_nbGuesses; }
 
 	 /** Check if the field already has a number entered. */
 	bool isSolved(size_t fieldIndex) const {
@@ -211,6 +217,9 @@ public:
 	/** Replaces the content with a trivial Sudoku. */
 	void trivialSolution();
 
+	/** get the field indices for all solved fields */
+	void getSolvedOrUnsolvedFields(FieldGroup& solvedFields, bool solved=true) const;
+
 	/** get the field indices for a row */
 	void getRow(size_t fieldIndex, FieldGroup& row) const;
 	/** get the field indices for a row */
@@ -249,6 +258,8 @@ public:
 	void swapBlockColumns(size_t bc1, size_t bc2);
 
 	bool checkSanity() const;
+
+	bool operator==(Sudoku const& other);
 
 	/**
 	 * Read a Sudoku from a stream. Format is as follows:

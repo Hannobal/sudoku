@@ -64,8 +64,10 @@ int main(int argc, char** argv) {
 			);
 
 			generator.generate();
-
-			std::cout << generator.sudoku();
+			std::cout << "Sudoku:" << std::endl;
+			std::cout << generator.getSudoku();
+			std::cout << "Solution:" << std::endl;
+			std::cout << generator.getSolution();
 
 		} else if(std::string(argv[1])=="solve") {
 
