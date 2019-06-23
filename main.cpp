@@ -63,11 +63,15 @@ int main(int argc, char** argv) {
 					Sudoku(static_cast<size_t>(size))
 			);
 
-			generator.generate();
-			std::cout << "Sudoku:" << std::endl;
-			std::cout << generator.getSudoku();
-			std::cout << "Solution:" << std::endl;
-			std::cout << generator.getSolution();
+			if(generator.generate()) {
+				std::cout << "# attempts: " << generator.nbAttempts() << std::endl;
+				std::cout << "Sudoku:" << std::endl;
+				std::cout << generator.getSudoku();
+				std::cout << "Solution:" << std::endl;
+				std::cout << generator.getSolution();
+			} else {
+				std::cout << "no success\n";
+			}
 
 		} else if(std::string(argv[1])=="solve") {
 

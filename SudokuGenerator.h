@@ -41,7 +41,7 @@ public:
 
 	Sudoku const& sudoku() const { return m_sudoku; }
 
-
+	size_t nbAttempts() const { return m_nbAttempts; }
 
 private:
 	void scramble();
@@ -52,6 +52,7 @@ private:
 	Sudoku m_sudoku;
 	Sudoku m_solution;
     float m_targetFilledRatio;
+    size_t m_nbAttempts;
 
     std::random_device m_randomDevice;
     std::default_random_engine m_randomEngine;

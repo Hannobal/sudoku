@@ -22,7 +22,7 @@ SudokuGenerator::Settings::Settings(
 {}
 
 SudokuGenerator::Settings SudokuGenerator::Settings::easy(
-		0.35f, 0.5f, 0, 0
+		0.4f, 0.5f, 0, 0
 );
 
 SudokuGenerator::Settings SudokuGenerator::Settings::medium(
@@ -42,6 +42,7 @@ SudokuGenerator::SudokuGenerator(Settings const& settings, Sudoku && sudoku) :
 		m_settings(settings),
 		m_sudoku(sudoku),
 		m_targetFilledRatio(0.0f),
+		m_nbAttempts(0),
 		m_randomEngine(m_randomDevice())
 {}
 
@@ -49,6 +50,7 @@ SudokuGenerator::SudokuGenerator(Settings && settings, Sudoku && sudoku) :
 		m_settings(settings),
 		m_sudoku(sudoku),
 		m_targetFilledRatio(0.0f),
+		m_nbAttempts(0),
 		m_randomEngine(m_randomDevice())
 {}
 
@@ -77,18 +79,17 @@ bool SudokuGenerator::tryRemoveSolution(Sudoku sudoku, int depth) {
 	std::vector<size_t> solvedFields(sudoku.nbSolved());
 	sudoku.getSolvedOrUnsolvedFields(solvedFields, true);
 
-	std::cout << "depth=" << depth << " " <<  "solvedFields.size()="<< solvedFields.size() << std::endl;
-	for(size_t fieldIndex : solvedFields)
-		std::cout << " " << fieldIndex;
-	std::cout << std::endl;
-	if(depth>60)
-		throw std::runtime_error("DEBUG: recursion too deep");
+//	std::cout << "depth=" << depth << " " <<  "solvedFields.size()="<< solvedFields.size() << std::endl;
+//	for(size_t fieldIndex : solvedFields)
+//		std::cout << " " << fieldIndex;
+//	std::cout << std::endl;
 
 	std::shuffle(solvedFields.begin(), solvedFields.end(), m_randomEngine);
 	for(size_t fieldIndex : solvedFields) {
-		std::cout << "remove field " << fieldIndex << std::endl;
+//		std::cout << "remove field " << fieldIndex << std::endl;
 		sudoku.clearSolution(fieldIndex);
-		std::cout << sudoku;
+		m_nbAttempts++;
+//		std::cout << sudoku;
 		SudokuSolver solver(
 				sudoku,
 				SudokuSolver::Mode::Deterministic,
