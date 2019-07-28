@@ -43,17 +43,42 @@ private:
 	int m_maxAmbiguities;
 	size_t m_maxResults;
 	size_t m_depth;
+	bool m_changed;
 	ResultList m_results;
 
-	 // work functions return true if a change was made
+	Result solveIteration();
 
-	bool workFields();
-	bool workRows();
-	bool workColumns();
-	bool workBlocks();
+	// check for naked singles
+	void workFields();
+	void workField(size_t fieldIndex);
 
-	bool workField(size_t fieldIndex);
-	bool workGroup(Sudoku::FieldGroup const& group);
+	// check for hidden singles
+	void workRows();
+	void workColumns();
+	void workBlocks();
+	void workGroup(Sudoku::FieldGroup const& group);
+
+	// check for block-row/column/block interactions
+	// should only be called with a block as group
+	void checkInteractions(Sudoku::FieldGroup const& block);
+	void applyBlockRowColInteractions(
+			std::set<size_t> const& allFieldCoords,
+			std::set<size_t> const& possibleFieldCoords,
+			Sudoku::FieldGroup const& origGroup,
+			size_t number,
+			bool row);
+
+	struct TwinField {
+		size_t fieldIndex;
+		std::vector<size_t> candidates;
+	};
+
+	//TODO: Work in progress
+	void checkTuples(size_t nbTupleElements);
+	void checkTuples(
+			size_t maxTupleElements,
+			Sudoku::FieldGroup const& group
+	);
 
 	void educatedGuess();
 

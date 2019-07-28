@@ -58,6 +58,8 @@ struct GridPoint {
  *         column 0   column 1   column 2
  */
 
+class SudokuSolver;
+
 class Sudoku {
 
 public:
@@ -109,7 +111,7 @@ public:
 	 * Check if a given number can be entered into a field.
 	 * Returns false if the field already has a number entered.
 	 */
-	bool isPossible(size_t fieldIndex, size_t i) const {
+	bool isCandidate(size_t fieldIndex, size_t i) const {
 		return m_possible[fieldIndex][i-1];
 	}
 
@@ -117,15 +119,15 @@ public:
 	 * Check if a given number can be entered into a field.
 	 * Returns false if the field already has a number entered.
 	 */
-	bool isPossible(GridPoint const& p, size_t i) const {
-		return isPossible(xyToIndex(p),i);
+	bool isCandidate(GridPoint const& p, size_t i) const {
+		return isCandidate(xyToIndex(p),i);
 	}
 
 	/*
 	 * Count the numbers that could potentially still be entered
 	 * into a field. Returns 0 if the field already has a number entered.
 	 */
-	size_t nbPossible(size_t fieldIndex) const {
+	size_t nbCandidates(size_t fieldIndex) const {
 		return m_possible[fieldIndex].count();
 	}
 
@@ -133,8 +135,8 @@ public:
 	 * Count the numbers that could potentially still be entered
 	 * into a field. Returns 0 if the field already has a number entered.
 	 */
-	size_t nbPossible(GridPoint const& p) const {
-		return nbPossible(xyToIndex(p));
+	size_t nbCandidates(GridPoint const& p) const {
+		return nbCandidates(xyToIndex(p));
 	}
 
 	/* The number of fields that already contain a solution */
@@ -179,14 +181,15 @@ public:
 
 	/** returns a vector containing all the numbers that can potentially
 	 * still be entered into a field */
-	void getPossibleNumbers(size_t fieldIndex, std::vector<size_t>& numbers);
+	void getCandidates(size_t fieldIndex, std::vector<size_t>& numbers);
 
 	/** Prints the sudoku to stdout */
 	void print() const;
 
 	/** Prints a boolean map of fields where the number
 	 * can potentially still be entered */
-	void printPossible(size_t number, size_t indent=0) const;
+	void printCandidates(size_t number, size_t indent=0) const;
+	void printCandidates() const;
 
 	/** Returns the number that has been entered into the field.
 	 * Returns zero for empty fields */
@@ -205,11 +208,11 @@ public:
 	}
 
 	/** Removes the number entered in a certain field and re-evaluates the
-	 * possibilities for all numbers for affected fields (self, column, row, block) */
+	 * candidates for all numbers for affected fields (self, column, row, block) */
 	void clearSolution(size_t fieldIndex);
 
 	/** Removes the number entered in a certain field and re-evaluates the
-	 * possibilities for all numbers for affected fields (self, column, row, block) */
+	 * candidates for all numbers for affected fields (self, column, row, block) */
 	void clearSolution(GridPoint const& p) {
 		clearSolution(xyToIndex(p));
 	}
@@ -217,8 +220,20 @@ public:
 	/** Replaces the content with a trivial Sudoku. */
 	void trivialSolution();
 
-	/** get the field indices for all solved fields */
-	void getSolvedOrUnsolvedFields(FieldGroup& solvedFields, bool solved=true) const;
+	/** get the field indices for all (un)solved fields */
+	void getSolvedOrUnsolvedFields(FieldGroup& group, bool solved=true) const;
+
+	/** get the numbers that are solved in a FieldGroup */
+	void getSolvedNumbers(
+			FieldGroup const& group,
+			std::set<size_t>& solvedNumbers
+	) const;
+
+	/** get the numbers that are missing in a FieldGroup */
+	void getMissingNumbers(
+			FieldGroup const& group,
+			std::set<size_t>& missingNumbers
+	) const;
 
 	/** get the field indices for a row */
 	void getRow(size_t fieldIndex, FieldGroup& row) const;
@@ -259,6 +274,15 @@ public:
 
 	bool checkSanity() const;
 
+	bool sameRow(size_t fieldIndex1, size_t fieldIndex2);
+	bool sameColumn(size_t fieldIndex1, size_t fieldIndex2);
+	bool sameBlock(size_t fieldIndex1, size_t fieldIndex2);
+
+	bool sameRow(GridPoint const& p1, GridPoint const& p2);
+	bool sameColumn(GridPoint const& p1, GridPoint const& p2);
+	bool sameBlock(GridPoint const& p1, GridPoint const& p2);
+
+
 	bool operator==(Sudoku const& other);
 
 	/**
@@ -275,6 +299,8 @@ public:
 private:
 
 	void printFrameLine() const;
+
+	void printFrameLine2(size_t fieldWidth) const;
 
 	/** convert GridPoint p to the corresponding field index */
 	size_t xyToIndex(GridPoint const& p) const {
@@ -333,6 +359,10 @@ private:
 	// unsolved fields have value 0
 	std::vector<size_t> m_solution;
 
+	friend class SudokuSolver;
+
 };
+
+std::ostream& operator<<(std::ostream& stream, const GridPoint& gridPoint);
 
 #endif /* SUDOKU_H_ */

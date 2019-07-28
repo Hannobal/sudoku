@@ -17,27 +17,9 @@ int main(int argc, char** argv) {
 		if(std::string(argv[1])=="test") {
 			int size=atoi(argv[2]);
 			Sudoku sudoku(size);
-			sudoku.trivialSolution();
+			sudoku.enterSolution(18, 5);
 			sudoku.print();
-			std::cout << sudoku.checkSanity() << std::endl << std::endl;
-			sudoku.transpose();
-			sudoku.print();
-			std::cout << "after transpose: " << sudoku.checkSanity() << std::endl << std::endl;
-			sudoku.invert();
-			sudoku.print();
-			std::cout << "after invert: " << sudoku.checkSanity() << std::endl << std::endl;
-			sudoku.flipHorizontal();
-			sudoku.print();
-			std::cout << "after flipHorizontal: " << sudoku.checkSanity() << std::endl << std::endl;
-			sudoku.flipVertical();
-			sudoku.print();
-			std::cout << "after flipVertical: " << sudoku.checkSanity() << std::endl << std::endl;
-			sudoku.rotateRight();
-			sudoku.print();
-			std::cout << "after rotateRight: " << sudoku.checkSanity() << std::endl << std::endl;
-			sudoku.rotateLeft();
-			sudoku.print();
-			std::cout << "after rotateLeft: " << sudoku.checkSanity() << std::endl << std::endl;
+			sudoku.printCandidates();
 
 		} else if(std::string(argv[1])=="generate") {
 

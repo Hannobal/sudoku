@@ -52,11 +52,11 @@ Sudoku::Sudoku(size_t length, size_t blockWidth) :
 	}
 }
 
-void Sudoku::getPossibleNumbers(size_t fieldIndex, std::vector<size_t>& numbers) {
+void Sudoku::getCandidates(size_t fieldIndex, std::vector<size_t>& numbers) {
 	numbers.resize(m_possible[fieldIndex].count());
 	size_t idx=0;
 	for(size_t i=1; i<=m_sideLength; ++i)
-		if(isPossible(fieldIndex,i))
+		if(isCandidate(fieldIndex,i))
 			numbers[idx++]=i;
 	if(idx!=numbers.size())
 		throw std::runtime_error("idx="+std::to_string(idx)+" != size="+std::to_string(numbers.size()));
@@ -91,7 +91,38 @@ void Sudoku::printFrameLine() const {
 	std::cout << std::setfill(' ') << "+" << std::endl;
 }
 
-void Sudoku::printPossible(size_t number, size_t indent) const
+void Sudoku::printFrameLine2(size_t fieldWidth) const {
+	std::cout << std::setfill('-');
+	for(size_t i(0); i<m_sideLength; i++)
+		std::cout << "+" << std::setw(fieldWidth) << "";
+	std::cout << std::setfill(' ') << "+" << std::endl;
+}
+
+void Sudoku::printCandidates() const {
+	size_t fieldWidth(3);
+	GridPoint p;
+	for(p.y=0; p.y<m_sideLength; ++p.y)  {
+		printFrameLine2(m_blockWidth*fieldWidth);
+		for(size_t y(0); y<m_blockHeight; y++) {
+			size_t number(y*m_blockHeight);
+			for(p.x=0; p.x<m_sideLength; ++p.x) {
+				std::cout << "|";
+				for(size_t x(0); x<m_blockWidth; x++) {
+					size_t fieldIndex(xyToIndex(p));
+					if(m_solution[fieldIndex]==0 && m_possible[fieldIndex][number])
+						std::cout << std::setw(fieldWidth) << number;
+					else
+						std::cout << std::setw(fieldWidth) << "";
+					number = y*m_blockHeight + (number+1) % m_blockHeight;
+				}
+			}
+			std::cout << "|" << std::endl;
+		}
+	}
+	printFrameLine2(m_blockWidth*fieldWidth);
+}
+
+void Sudoku::printCandidates(size_t number, size_t indent) const
 {
 	GridPoint p;
 	number--;
@@ -120,8 +151,18 @@ void Sudoku::enterSolution(size_t fieldIndex, size_t number, bool guessed)
 		}
 	}
 
-	if(!isPossible(fieldIndex,number))
-		throw std::runtime_error("Sudoku::enterSolution: Invalid number " + std::to_string(number));
+	if(!isCandidate(fieldIndex,number)) {
+		print();
+		std::cout << "candidates: ";
+		std::vector<size_t> cands;
+		getCandidates(fieldIndex,cands);
+		for(auto c : cands) std::cout << " " << c;
+		std::cout <<std::endl;
+		printCandidates(number);
+		std::cout << m_possible[fieldIndex].to_string() << std::endl;
+		throw std::runtime_error("Sudoku::enterSolution: Invalid number "
+				+ std::to_string(number)+" for field "+std::to_string(fieldIndex));
+	}
 
 	FieldGroup group(m_sideLength);
 	getRow(fieldIndex,group);
@@ -192,6 +233,40 @@ void Sudoku::getSolvedOrUnsolvedFields(FieldGroup& solvedFields, bool solved) co
 	}
 }
 
+void Sudoku::getSolvedNumbers(
+		FieldGroup const& group,
+		std::set<size_t>& solvedNumbers
+) const {
+	solvedNumbers.clear();
+	for(auto field : group) {
+		if(isSolved(field))
+			solvedNumbers.insert(m_solution[field]);
+	}
+}
+
+void Sudoku::getMissingNumbers(
+		FieldGroup const& group,
+		std::set<size_t>& solvedNumbers
+) const {
+
+	solvedNumbers.clear();
+	for(size_t i=1; i<=m_sideLength; ++i)
+		solvedNumbers.insert(i);
+
+	for(auto fieldIndex : group) {
+		if(isSolved(fieldIndex))
+		solvedNumbers.erase(m_solution[fieldIndex]);
+	}
+}
+
+void Sudoku::getRow(size_t fieldIndex, FieldGroup& col) const
+{
+	col.resize(m_sideLength);
+	size_t offset=fieldIndex%m_sideLength;
+	for(size_t y=0; y<m_sideLength; ++y)
+		col[y] = y*m_sideLength+offset;
+}
+
 void Sudoku::getRow(GridPoint p, FieldGroup& row) const
 {
 	row.resize(m_sideLength);
@@ -199,7 +274,7 @@ void Sudoku::getRow(GridPoint p, FieldGroup& row) const
 		row[p.x] = xyToIndex(p);
 }
 
-void Sudoku::getRow(size_t fieldIndex, FieldGroup& row) const
+void Sudoku::getColumn(size_t fieldIndex, FieldGroup& row) const
 {
 	row.resize(m_sideLength);
 	size_t min=m_sideLength*(fieldIndex/m_sideLength);
@@ -212,14 +287,6 @@ void Sudoku::getColumn(GridPoint p, FieldGroup& col) const
 	col.resize(m_sideLength);
 	for(p.y=0; p.y<m_sideLength; ++p.y)
 		col[p.y] = xyToIndex(p);
-}
-
-void Sudoku::getColumn(size_t fieldIndex, FieldGroup& col) const
-{
-	col.resize(m_sideLength);
-	size_t offset=fieldIndex%m_sideLength;
-	for(size_t y=0; y<m_sideLength; ++y)
-		col[y] = y*m_sideLength+offset;
 }
 
 // get the field indices for the block containing the field
@@ -415,6 +482,32 @@ bool Sudoku::checkSanity(size_t fieldIndex, FieldGroup const& group) const {
 	return true;
 }
 
+bool Sudoku::sameRow(size_t fieldIndex1, size_t fieldIndex2) {
+	return sameRow(indexToXY(fieldIndex1),indexToXY(fieldIndex2));
+}
+
+bool Sudoku::sameColumn(size_t fieldIndex1, size_t fieldIndex2) {
+	return sameColumn(indexToXY(fieldIndex1),indexToXY(fieldIndex2));
+}
+
+bool Sudoku::sameBlock(size_t fieldIndex1, size_t fieldIndex2) {
+	return sameBlock(indexToXY(fieldIndex1),indexToXY(fieldIndex2));
+}
+
+bool Sudoku::sameRow(GridPoint const& p1, GridPoint const& p2) {
+	return (p1.y == p2.y);
+}
+
+bool Sudoku::sameColumn(GridPoint const& p1, GridPoint const& p2) {
+	return (p1.x == p2.x);
+}
+
+bool Sudoku::sameBlock(GridPoint const& p1, GridPoint const& p2) {
+	if(p1.x/m_blockWidth != p2.x/m_blockWidth) return false;
+	if(p1.y/m_blockHeight != p2.y/m_blockHeight) return false;
+	return true;
+}
+
 bool Sudoku::operator==(Sudoku const& other) {
 	if(m_sideLength != other.m_sideLength) return false;
 	if(m_blockWidth != other.m_blockWidth) return false;
@@ -462,6 +555,13 @@ std::istream &operator>>( std::istream  &input, Sudoku &sudoku )
 	return input;
 }
 
+void Sudoku::nearSquareFactors(size_t n, size_t& f1, size_t &f2)
+{
+	f1=sqrt(n);
+	while(f1>1 && n%f1!=0) f1--;
+	f2=n/f1;
+}
+
 std::ostream &operator<<( std::ostream  &output, Sudoku const& sudoku ) {
 	GridPoint p;
 	for(p.y=0; p.y<sudoku.m_sideLength; ++p.y)  {
@@ -478,9 +578,7 @@ std::ostream &operator<<( std::ostream  &output, Sudoku const& sudoku ) {
 	return output;
 }
 
-void Sudoku::nearSquareFactors(size_t n, size_t& f1, size_t &f2)
-{
-	f1=sqrt(n);
-	while(f1>1 && n%f1!=0) f1--;
-	f2=n/f1;
+std::ostream& operator<<(std::ostream& stream, const GridPoint& gridPoint) {
+	stream << gridPoint.x << "," << gridPoint.y;
+	return stream;
 }
