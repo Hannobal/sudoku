@@ -182,33 +182,20 @@ void SudokuSolver::applyBlockRowColInteractions(
 		size_t number,
 		bool row
 ) {
-	bool changed(false);
-	std::cout << number << (row ? " rows" : " columns") << " all: ";
-	for(auto v : allFieldCoords) std::cout << " " << v;
-	std::cout << " possible: ";
-	for(auto v : possibleFieldCoords) std::cout << " " << v;
-	std::cout << std::endl;
-	m_sudoku.printCandidates(number);
 	for(auto coord : possibleFieldCoords) {
 		Sudoku::FieldGroup group;
 		if(row)
 			m_sudoku.getRow(coord,group);
 		else
 			m_sudoku.getColumn(coord,group);
-		std::cout << "fields: ";
 		for(auto fieldIndex : group) {
-			std::cout << " " << fieldIndex;
 			if(contains(origGroup, fieldIndex)) continue;
 			if(m_sudoku.isCandidate(fieldIndex,number)) {
 				m_changed = true;
-				changed=true;
 				m_sudoku.makeImpossible(fieldIndex, number);
 			}
 		}
-		std::cout << std::endl;
 	}
-	std::cout << "after (changed=" << changed << ")" << std::endl;
-	m_sudoku.printCandidates(number);
 }
 
 void SudokuSolver::checkTuples(
