@@ -16,14 +16,24 @@ SudokuSolver::SudokuSolver(
 		m_mode(mode),
 		m_maxAmbiguities(maxAmbiguities),
 		m_maxResults(maxResults),
-		m_depth(depth+1),
-		m_changed(false)
+		m_depth(depth+1)
+{}
+
+SudokuSolver::SudokuSolver(
+		SudokuSolver const& other
+) :
+				m_sudoku(other.m_sudoku),
+				m_mode(other.m_mode),
+				m_maxAmbiguities(other.m_maxAmbiguities),
+				m_maxResults(other.m_maxResults),
+				m_depth(other.m_depth+1)
 {}
 
 SudokuSolver::Result SudokuSolver::solve() {
 
 	Result iterationResult;
 	do {
+		std::cout << "NEXT ITERATION\n";
 		iterationResult=solveIteration();
 	} while(iterationResult==Result::ambiguos && m_changed);
 
@@ -31,8 +41,10 @@ SudokuSolver::Result SudokuSolver::solve() {
 		return Result::solved;
 	else if(iterationResult==Result::impossible)
 		return Result::impossible;
-	else if(m_maxAmbiguities>=0 && m_sudoku.nbGuesses()>=m_maxAmbiguities)
+	else if(m_maxAmbiguities>=0 && m_sudoku.nbGuesses()>=m_maxAmbiguities) {
+		std::cout << "MAX GUESSES REACHED\n" << m_sudoku.nbGuesses() << " vs " << m_maxAmbiguities << std::endl;
 		return Result::ambiguos;
+	}
 
 	if(m_mode==Mode::Deterministic)
 		educatedGuess();
@@ -61,6 +73,7 @@ SudokuSolver::Result SudokuSolver::solveIteration() {
 		return Result::ambiguos;
 
 	// now check and eliminated candidate pairs
+	std::cout << "CHECKING PAIRS\n";
 	for(size_t i=0; i<m_sudoku.sideLength(); i++) {
 		Sudoku::FieldGroup group(m_sudoku.sideLength());
 		m_sudoku.getBlock(i*m_sudoku.sideLength(), group);
@@ -68,7 +81,10 @@ SudokuSolver::Result SudokuSolver::solveIteration() {
 	}
 
 	// now checkTuples
-//	checkTuples(2);
+	std::cout << "CHECKING TWINS\n";
+	checkTuples(2);
+	std::cout << "CHECKING TRIPLETS\n";
+	checkTuples(3);
 
 	return Result::ambiguos;
 }
@@ -148,12 +164,10 @@ void SudokuSolver::workGroup(const Sudoku::FieldGroup& group)
 }
 
 void SudokuSolver::checkInteractions(Sudoku::FieldGroup const& block) {
-	// TODO: This is buggy (for the 9x9 very hard it succeeds once and fails once,
-	// resulting in an almost but wrongly solved sudoku (compare with brute force
-	// solution via educated guess)
 	std::set<size_t> possibleNumbers;
 	m_sudoku.getMissingNumbers(block,possibleNumbers);
 	for(auto number : possibleNumbers) {
+		size_t refFieldIndex;
 		// find rows/columns
 		std::set<size_t> allCols, allRows, possibleCols, possibleRows;
 		for(auto fieldIndex : block) {
@@ -165,35 +179,32 @@ void SudokuSolver::checkInteractions(Sudoku::FieldGroup const& block) {
 			if(m_sudoku.isCandidate(fieldIndex, number)) {
 				possibleCols.insert(p.x);
 				possibleRows.insert(p.y);
+				refFieldIndex=fieldIndex;
 			}
 		}
-//		if(possibleRows.size()!=allRows.size())
 		if(possibleRows.size()==1)
-			applyBlockRowColInteractions(allRows, possibleRows, block, number, true);
+			applyBlockRowColInteractions(block, refFieldIndex, number, true);
 		if(possibleCols.size()==1)
-			applyBlockRowColInteractions(allCols, possibleCols, block, number, false);
+			applyBlockRowColInteractions(block, refFieldIndex, number, false);
 	}
 }
 
 void SudokuSolver::applyBlockRowColInteractions(
-		std::set<size_t> const& allFieldCoords,
-		std::set<size_t> const& possibleFieldCoords,
 		Sudoku::FieldGroup const& origGroup,
+		size_t refFieldIndex,
 		size_t number,
 		bool row
 ) {
-	for(auto coord : possibleFieldCoords) {
-		Sudoku::FieldGroup group;
-		if(row)
-			m_sudoku.getRow(coord,group);
-		else
-			m_sudoku.getColumn(coord,group);
-		for(auto fieldIndex : group) {
-			if(contains(origGroup, fieldIndex)) continue;
-			if(m_sudoku.isCandidate(fieldIndex,number)) {
-				m_changed = true;
-				m_sudoku.makeImpossible(fieldIndex, number);
-			}
+	Sudoku::FieldGroup group;
+	if(row)
+		m_sudoku.getRow(refFieldIndex,group);
+	else
+		m_sudoku.getColumn(refFieldIndex,group);
+	for(auto fieldIndex : group) {
+		if(contains(origGroup, fieldIndex)) continue;
+		if(m_sudoku.isCandidate(fieldIndex,number)) {
+			m_changed = true;
+			m_sudoku.makeImpossible(fieldIndex, number);
 		}
 	}
 }
@@ -201,49 +212,74 @@ void SudokuSolver::applyBlockRowColInteractions(
 void SudokuSolver::checkTuples(
 		size_t nbTupleElements
 ){
-	std::cout << "SudokuSolver::checkTuples" << std::endl;
-	// find all tuples
-	std::vector<TwinField> tuples;
+	// find all candidate tuples with correct number of elements
+	TupleLookup tuples;
 	size_t nbFields=m_sudoku.nbFields();
 	for(size_t fieldIndex(0); fieldIndex<nbFields; fieldIndex++) {
-		if(m_sudoku.nbCandidates(fieldIndex)==nbTupleElements) {
-			TwinField field;
-			field.fieldIndex=fieldIndex;
-			m_sudoku.getCandidates(fieldIndex, field.candidates);
-			std::cout << field.fieldIndex << "  ";
-			for(auto i : field.candidates) std::cout << " " << i;
-			std::cout << std::endl;
-			tuples.push_back(std::move(field));
-		}
+		if(m_sudoku.nbCandidates(fieldIndex)!=nbTupleElements) continue;
+
+		CandidateList candidates;
+		m_sudoku.getCandidates(fieldIndex, candidates);
+		tuples[std::move(candidates)].push_back(fieldIndex);
 	}
-	// check pairwise TODO: This is wrong. Should be pairwise for twins
-	// but groups of three for tiplets and so forth
-	for(size_t t1(0); t1<tuples.size(); t1++) {
-		for(size_t t2(t1+1); t2<tuples.size(); t2++) {
-			if(tuples[t1].candidates!=tuples[t2].candidates)
-				continue;
-			GridPoint p1(m_sudoku.indexToXY(tuples[t1].fieldIndex));
-			GridPoint p2(m_sudoku.indexToXY(tuples[t2].fieldIndex));
-			if(m_sudoku.sameBlock(p1, p2)) {
 
-			}
-			if(m_sudoku.sameRow(p1, p2)) {
+	for(TupleLookup::const_iterator it=tuples.begin(); it!=tuples.end(); ++it) {
+		// we need at least N fields with an identical N-tuple to make any decision
+		if(it->second.size() < it->first.size()) continue;
+		for(size_t i(0); i<it->second.size(); ++i) {
 
-			} else if(m_sudoku.sameColumn(p1, p2)) {
+			FieldList tupleIndices({i});
+			Sudoku::FieldGroup group(m_sudoku.sideLength());
 
-			}
+			m_sudoku.getRow(it->second[i], group);
+			checkTuples(it,tupleIndices,group);
+
+			m_sudoku.getColumn(it->second[i], group);
+			checkTuples(it,tupleIndices,group);
+
+			m_sudoku.getBlock(it->second[i], group);
+			checkTuples(it,tupleIndices,group);
 		}
 	}
 }
 
 void SudokuSolver::checkTuples(
-		size_t maxTupleElements,
+		TupleLookup::const_iterator tuple,
+		FieldList const& tupleIndices,
 		Sudoku::FieldGroup const& group)
 {
+	if(tupleIndices.size()>1 && ! contains(group, tuple->second[tupleIndices.back()])) {
+		return;
+	}
+	// we need at least N fields with an identical N-tuple to make any decision
+	if(tupleIndices.size()<tuple->first.size()) {
+		for(size_t tupleIndex(tupleIndices.back()+1); tupleIndex<tuple->second.size(); ++tupleIndex) {
+			FieldList newList(tupleIndices);
+			newList.push_back(tupleIndex);
+			checkTuples(tuple, newList, group);
+		}
+	} else {
+		// We've got a match!
+		FieldList tupleFields(tupleIndices.size());
+		for(size_t i(0); i<tupleIndices.size(); ++i) {
+			tupleFields[i]=tuple->second[tupleIndices[i]];
+		}
+		for(size_t fieldIndex : group) {
+			if(contains(tupleFields, fieldIndex)) continue;
+			std::vector<size_t> numbers;
+			m_sudoku.getCandidates(fieldIndex, numbers);
+			for(size_t number : numbers) {
+				if(! contains(tuple->first, number)) continue;
+				m_sudoku.makeImpossible(fieldIndex, number);
+				m_changed=true;
+			}
+		}
+	}
 }
 
 void SudokuSolver::educatedGuess()
 {
+	std::cout << "DETERMINISTIC GUESS\n";
 	// find field with minimum number of possibilities
 	size_t fieldIndex(999);
 	size_t minPossible(m_sudoku.sideLength()+1);
@@ -263,9 +299,9 @@ void SudokuSolver::educatedGuess()
 	std::vector<size_t> numbers;
 	m_sudoku.getCandidates(fieldIndex, numbers);
 	for(auto i : numbers) {
-		Sudoku tmp(m_sudoku);
-		tmp.enterSolution(fieldIndex, i, true);
-		SudokuSolver solver(tmp,m_mode,m_maxResults,m_depth);
+//		Sudoku tmp(m_sudoku);
+		SudokuSolver solver(*this);
+		solver.m_sudoku.enterSolution(fieldIndex, i, true);
 		if(solver.solve() == Result::solved) {
 			// move results from child solver
 			moveResults(solver);
@@ -280,7 +316,7 @@ void SudokuSolver::randomGuess()
 	std::cout << "SudokuSolver::randomGuess " << m_depth << std::endl;
 	// check if the current sudoku is solvable at all
 	{
-		SudokuSolver solver(m_sudoku,Mode::Deterministic,1,m_depth);
+		SudokuSolver solver(m_sudoku,Mode::Deterministic,m_maxAmbiguities,m_depth);
 		if(solver.solve()==Result::impossible)
 			return;
 	}
@@ -299,9 +335,8 @@ void SudokuSolver::randomGuess()
     	m_sudoku.getCandidates(fieldIndex, numbers);
         std::shuffle(numbers.begin(),numbers.end(),randEngine);
         for(auto nb : numbers) {
-			Sudoku tmp(m_sudoku);
-			tmp.enterSolution(fieldIndex, nb, true);
-			SudokuSolver solver(tmp,m_mode,m_maxResults,m_depth);
+			SudokuSolver solver(*this);
+			solver.m_sudoku.enterSolution(fieldIndex, nb, true);
 			Result res = solver.solve();
 			if(res == Result::solved) {
 				moveResults(solver);

@@ -2,6 +2,7 @@
 #include <memory>
 #include <deque>
 #include <limits>
+#include <map>
 
 #ifndef SUDOKUSOLVER_H_
 #define SUDOKUSOLVER_H_
@@ -11,6 +12,10 @@ class SudokuSolver {
 public:
 
 	typedef std::deque<Sudoku> ResultList;
+
+	typedef std::vector<size_t> CandidateList;
+	typedef std::deque<size_t> FieldList;
+	typedef std::map<CandidateList,FieldList> TupleLookup;
 
 	enum class Mode : char {
 		Deterministic,
@@ -28,6 +33,10 @@ public:
 			size_t depth=0
 	);
 
+	SudokuSolver(
+			SudokuSolver const& other
+	);
+
 	Result solve();
 
 	ResultList getSolved() {return m_results;}
@@ -43,7 +52,7 @@ private:
 	int m_maxAmbiguities;
 	size_t m_maxResults;
 	size_t m_depth;
-	bool m_changed;
+	bool m_changed = false;
 	ResultList m_results;
 
 	Result solveIteration();
@@ -62,21 +71,15 @@ private:
 	// should only be called with a block as group
 	void checkInteractions(Sudoku::FieldGroup const& block);
 	void applyBlockRowColInteractions(
-			std::set<size_t> const& allFieldCoords,
-			std::set<size_t> const& possibleFieldCoords,
 			Sudoku::FieldGroup const& origGroup,
+			size_t refFieldIndex,
 			size_t number,
 			bool row);
 
-	struct TwinField {
-		size_t fieldIndex;
-		std::vector<size_t> candidates;
-	};
-
-	//TODO: Work in progress
 	void checkTuples(size_t nbTupleElements);
 	void checkTuples(
-			size_t maxTupleElements,
+			TupleLookup::const_iterator tuple,
+			FieldList const& tupleIndices,
 			Sudoku::FieldGroup const& group
 	);
 
