@@ -74,10 +74,12 @@ SudokuSolver::Result SudokuSolver::solveIteration() {
 
 	// now check and eliminated candidate pairs
 	std::cout << "CHECKING PAIRS\n";
-	for(size_t i=0; i<m_sudoku.sideLength(); i++) {
-		Sudoku::FieldGroup group(m_sudoku.sideLength());
-		m_sudoku.getBlock(i*m_sudoku.sideLength(), group);
-		checkInteractions(group);
+	for(GridPoint p(0,0); p.x<m_sudoku.sideLength(); p.x+=m_sudoku.blockWidth()) {
+		for(p.y=0; p.y<m_sudoku.sideLength(); p.y+=m_sudoku.blockHeight()) {
+			Sudoku::FieldGroup group(m_sudoku.sideLength());
+			m_sudoku.getBlock(p, group);
+			checkInteractions(group);
+		}
 	}
 
 	// now checkTuples
@@ -116,9 +118,11 @@ void SudokuSolver::workColumns()
 void SudokuSolver::workBlocks()
 {
 	Sudoku::FieldGroup group(m_sudoku.sideLength());
-	for(size_t i=0; i<m_sudoku.sideLength(); i++) {
-		m_sudoku.getBlock(i*m_sudoku.sideLength(), group);
-		workGroup(group);
+	GridPoint p;
+	for(p.x=0; p.x<m_sudoku.sideLength(); p.x+=m_sudoku.blockWidth()) {
+		for(p.y=0; p.y<m_sudoku.sideLength(); p.y+=m_sudoku.blockHeight()) {
+			workGroup(group);
+		}
 	}
 }
 
