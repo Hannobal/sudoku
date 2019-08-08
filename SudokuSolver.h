@@ -47,6 +47,19 @@ public:
 
 private:
 
+	struct InteractionBlock {
+		Sudoku::FieldGroup fields;
+		// vector index: candidate/number
+		// set contains row/column indices where the candidate is possible
+		std::set<size_t> missingNumbers;
+		std::vector<size_t> referenceField;
+		std::vector<std::set<size_t>> possibleCols;
+		std::vector<std::set<size_t>> possibleRows;
+	};
+
+	//index: BlockID
+	typedef std::vector<InteractionBlock> InteractionStorage;
+
 	Sudoku m_sudoku;
 	Mode m_mode;
 	int m_maxAmbiguities;
@@ -67,14 +80,30 @@ private:
 	void workBlocks();
 	void workGroup(Sudoku::FieldGroup const& group);
 
+	void findPossibleRowsAndColumns(InteractionStorage & interactions);
+	void findPossibleRowsAndColumns(InteractionBlock & block);
+
 	// check for block-row/column/block interactions
 	// should only be called with a block as group
-	void checkInteractions(Sudoku::FieldGroup const& block);
+	void checkBlockRowColInteractions(InteractionStorage const& interactions);
 	void applyBlockRowColInteractions(
 			Sudoku::FieldGroup const& origGroup,
 			size_t refFieldIndex,
 			size_t number,
 			bool row);
+
+	/****************************
+	 * TODO: Block-Block interaction
+	 * - ideally separate struct with
+	 *   - possible row
+	 *   - possible col
+	 * - then first find all and store in array
+	 *   - 1st index: x
+	 *   - 2nd index: y
+	 *   - 3rd index: number
+	 * - then do block-column/row interaction
+	 * - then do block-block interaction
+	 ***********************/
 
 	void checkTuples(size_t nbTupleElements);
 	void checkTuples(

@@ -17,10 +17,15 @@ int main(int argc, char** argv) {
 		if(std::string(argv[1])=="test") {
 			int size=atoi(argv[2]);
 			Sudoku sudoku(size);
-			sudoku.enterSolution(18, 5);
-			sudoku.print();
-			sudoku.printCandidates();
-
+			Sudoku::FieldGroup group(sudoku.sideLength());
+			for(GridPoint p(0,0); p.x<sudoku.sideLength(); p.x+=sudoku.blockWidth()) {
+				for(p.y=0; p.y<sudoku.sideLength(); p.y+=sudoku.blockHeight()) {
+					sudoku.getBlock(p, group);
+					std::cout << p << "   ";
+					for(auto f : group) std::cout << " " << f;
+					std::cout << std::endl;
+				}
+			}
 		} else if(std::string(argv[1])=="generate") {
 
 			if(argc<4)

@@ -110,7 +110,7 @@ void Sudoku::printCandidates() const {
 				for(size_t x(0); x<m_blockWidth; x++) {
 					size_t fieldIndex(xyToIndex(p));
 					if(m_solution[fieldIndex]==0 && m_possible[fieldIndex][number])
-						std::cout << std::setw(fieldWidth) << number;
+						std::cout << std::setw(fieldWidth) << number+1;
 					else
 						std::cout << std::setw(fieldWidth) << "";
 					number = y*m_blockHeight + (number+1) % m_blockHeight;

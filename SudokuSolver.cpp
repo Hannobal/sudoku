@@ -42,7 +42,7 @@ SudokuSolver::Result SudokuSolver::solve() {
 	else if(iterationResult==Result::impossible)
 		return Result::impossible;
 	else if(m_maxAmbiguities>=0 && m_sudoku.nbGuesses()>=m_maxAmbiguities) {
-		std::cout << "MAX GUESSES REACHED\n" << m_sudoku.nbGuesses() << " vs " << m_maxAmbiguities << std::endl;
+//		std::cout << "MAX GUESSES REACHED\n" << m_sudoku.nbGuesses() << " vs " << m_maxAmbiguities << std::endl;
 		return Result::ambiguos;
 	}
 
@@ -72,15 +72,12 @@ SudokuSolver::Result SudokuSolver::solveIteration() {
 	} else if(m_changed)
 		return Result::ambiguos;
 
+	InteractionStorage blockInfo;
+	findPossibleRowsAndColumns(blockInfo);
+
 	// now check and eliminated candidate pairs
-	std::cout << "CHECKING PAIRS\n";
-	for(GridPoint p(0,0); p.x<m_sudoku.sideLength(); p.x+=m_sudoku.blockWidth()) {
-		for(p.y=0; p.y<m_sudoku.sideLength(); p.y+=m_sudoku.blockHeight()) {
-			Sudoku::FieldGroup group(m_sudoku.sideLength());
-			m_sudoku.getBlock(p, group);
-			checkInteractions(group);
-		}
-	}
+	std::cout << "CHECKING BLOCK-ROW/COLUMN\n";
+	checkBlockRowColInteractions(blockInfo);
 
 	// now checkTuples
 	std::cout << "CHECKING TWINS\n";
@@ -167,29 +164,51 @@ void SudokuSolver::workGroup(const Sudoku::FieldGroup& group)
 	}
 }
 
-void SudokuSolver::checkInteractions(Sudoku::FieldGroup const& block) {
-	std::set<size_t> possibleNumbers;
-	m_sudoku.getMissingNumbers(block,possibleNumbers);
-	for(auto number : possibleNumbers) {
-		size_t refFieldIndex;
-		// find rows/columns
-		std::set<size_t> allCols, allRows, possibleCols, possibleRows;
-		for(auto fieldIndex : block) {
+void SudokuSolver::findPossibleRowsAndColumns(InteractionStorage & interactions) {
+	interactions.clear();
+	interactions.resize(m_sudoku.sideLength());
+	size_t i(0);
+	for(GridPoint p(0,0); p.x<m_sudoku.sideLength(); p.x+=m_sudoku.blockWidth()) {
+		for(p.y=0; p.y<m_sudoku.sideLength(); p.y+=m_sudoku.blockHeight(),++i) {
+			interactions[i].fields.resize(m_sudoku.sideLength());
+			m_sudoku.getBlock(p, interactions[i].fields);
+			findPossibleRowsAndColumns(interactions[i]);
+		}
+	}
+}
+
+void SudokuSolver::findPossibleRowsAndColumns(InteractionBlock & block) {
+	m_sudoku.getMissingNumbers(block.fields,block.missingNumbers);
+	block.possibleCols.clear();
+	block.possibleCols.resize(m_sudoku.sideLength());
+	block.possibleRows.clear();
+	block.possibleRows.resize(m_sudoku.sideLength());
+	block.referenceField.clear();
+	block.referenceField.resize(m_sudoku.sideLength());
+	for(auto number : block.missingNumbers) {
+		for(auto fieldIndex : block.fields) {
 			GridPoint p(m_sudoku.indexToXY(fieldIndex));
-			allCols.insert(p.x);
-			allRows.insert(p.y);
 			if(m_sudoku.isSolved(fieldIndex))
 				continue;
 			if(m_sudoku.isCandidate(fieldIndex, number)) {
-				possibleCols.insert(p.x);
-				possibleRows.insert(p.y);
-				refFieldIndex=fieldIndex;
+				size_t index(number-1);
+				block.possibleCols[index].insert(p.x);
+				block.possibleRows[index].insert(p.y);
+				block.referenceField[index]=fieldIndex;
 			}
 		}
-		if(possibleRows.size()==1)
-			applyBlockRowColInteractions(block, refFieldIndex, number, true);
-		if(possibleCols.size()==1)
-			applyBlockRowColInteractions(block, refFieldIndex, number, false);
+	}
+}
+
+void SudokuSolver::checkBlockRowColInteractions(InteractionStorage const& interactions) {
+	for(auto const& block : interactions) {
+		for(auto number : block.missingNumbers) {
+			size_t index(number-1);
+			if(block.possibleRows[index].size()==1)
+				applyBlockRowColInteractions(block.fields, block.referenceField[index], number, true);
+			if(block.possibleCols[index].size()==1)
+				applyBlockRowColInteractions(block.fields, block.referenceField[index], number, false);
+		}
 	}
 }
 
@@ -283,7 +302,7 @@ void SudokuSolver::checkTuples(
 
 void SudokuSolver::educatedGuess()
 {
-	std::cout << "DETERMINISTIC GUESS\n";
+//	std::cout << "DETERMINISTIC GUESS\n";
 	// find field with minimum number of possibilities
 	size_t fieldIndex(999);
 	size_t minPossible(m_sudoku.sideLength()+1);
@@ -317,7 +336,7 @@ void SudokuSolver::educatedGuess()
 
 void SudokuSolver::randomGuess()
 {
-	std::cout << "SudokuSolver::randomGuess " << m_depth << std::endl;
+//	std::cout << "SudokuSolver::randomGuess " << m_depth << std::endl;
 	// check if the current sudoku is solvable at all
 	{
 		SudokuSolver solver(m_sudoku,Mode::Deterministic,m_maxAmbiguities,m_depth);
