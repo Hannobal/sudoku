@@ -79,6 +79,9 @@ SudokuSolver::Result SudokuSolver::solveIteration() {
 	std::cout << "CHECKING BLOCK-ROW/COLUMN\n";
 	checkBlockRowColInteractions(blockInfo);
 
+	std::cout << "CHECKING BLOCK-BLOCK\n";
+	checkBlockBlockInteractions(blockInfo);
+
 	// now checkTuples
 	std::cout << "CHECKING TWINS\n";
 	checkTuples(2);
@@ -200,8 +203,8 @@ void SudokuSolver::findPossibleRowsAndColumns(InteractionBlock & block) {
 	}
 }
 
-void SudokuSolver::checkBlockRowColInteractions(InteractionStorage const& interactions) {
-	for(auto const& block : interactions) {
+void SudokuSolver::checkBlockRowColInteractions(InteractionStorage const& blockInfo) {
+	for(auto const& block : blockInfo) {
 		for(auto number : block.missingNumbers) {
 			size_t index(number-1);
 			if(block.possibleRows[index].size()==1)
@@ -224,8 +227,67 @@ void SudokuSolver::applyBlockRowColInteractions(
 	else
 		m_sudoku.getColumn(refFieldIndex,group);
 	for(auto fieldIndex : group) {
+		if(m_sudoku.isSolved(fieldIndex)) continue;
+		if(!m_sudoku.isCandidate(fieldIndex,number)) continue;
 		if(contains(origGroup, fieldIndex)) continue;
-		if(m_sudoku.isCandidate(fieldIndex,number)) {
+		m_changed = true;
+		m_sudoku.makeImpossible(fieldIndex, number);
+	}
+}
+
+void SudokuSolver::checkBlockBlockInteractions(InteractionStorage const& blockInfo) {
+	for(size_t number(1); number<=m_sudoku.sideLength(); number++) {
+		size_t index(number-1);
+		for(size_t b1(0); b1<blockInfo.size(); b1++) {
+			if(blockInfo[b1].possibleCols[index].size()==2) {
+				// compare with blocks below this one in the same column
+				size_t b2max(m_sudoku.nbBlockRows()*(1+b1/m_sudoku.nbBlockRows()));
+				for(size_t b2(b1+1); b2<b2max; b2++) {
+					if(blockInfo[b1].possibleCols[index].size()!=2) continue;
+					if(blockInfo[b1].possibleCols[index]!=blockInfo[b2].possibleCols[index]) continue;
+					applyBlockBlockInteractions(
+							blockInfo[b1],
+							blockInfo[b2],
+							blockInfo[b1].possibleCols[index],
+							number,
+							false);
+				}
+			}
+			if(blockInfo[b1].possibleRows[index].size()==2) {
+				// compare with blocks right of this one in the same row
+				for(size_t b2(b1+m_sudoku.nbBlockColumns()); b2<blockInfo.size(); b2+=m_sudoku.nbBlockColumns()) {
+					if(blockInfo[b1].possibleRows[index].size()!=2) continue;
+					if(blockInfo[b1].possibleRows[index]!=blockInfo[b2].possibleRows[index]) continue;
+					applyBlockBlockInteractions(
+							blockInfo[b1],
+							blockInfo[b2],
+							blockInfo[b1].possibleRows[index],
+							number,
+							true);
+				}
+			}
+		}
+	}
+}
+
+void SudokuSolver::applyBlockBlockInteractions(
+		InteractionBlock const& block1,
+		InteractionBlock const& block2,
+		std::set<size_t> const& rowOrColumnIndices,
+		size_t number,
+		bool row
+) {
+	for(size_t index : rowOrColumnIndices) {
+		Sudoku::FieldGroup group;
+		if(row)
+			m_sudoku.getRow(GridPoint(0,index), group);
+		else
+			m_sudoku.getColumn(GridPoint(index,0), group);
+		for(size_t fieldIndex : group) {
+			if(m_sudoku.isSolved(fieldIndex)) continue;
+			if(!m_sudoku.isCandidate(fieldIndex, number)) continue;
+			if(contains(block1.fields,fieldIndex)) continue;
+			if(contains(block2.fields,fieldIndex)) continue;
 			m_changed = true;
 			m_sudoku.makeImpossible(fieldIndex, number);
 		}

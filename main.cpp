@@ -5,6 +5,13 @@
 #include <fstream>
 #include <stdlib.h>
 
+GridPoint indexToXy(size_t i, size_t sideLen) {
+	return GridPoint(
+		i/sideLen,
+		i%sideLen
+	);
+}
+
 int main(int argc, char** argv) {
 	try {
 		if(argc<2) {
@@ -15,16 +22,10 @@ int main(int argc, char** argv) {
 		}
 
 		if(std::string(argv[1])=="test") {
-			int size=atoi(argv[2]);
-			Sudoku sudoku(size);
-			Sudoku::FieldGroup group(sudoku.sideLength());
-			for(GridPoint p(0,0); p.x<sudoku.sideLength(); p.x+=sudoku.blockWidth()) {
-				for(p.y=0; p.y<sudoku.sideLength(); p.y+=sudoku.blockHeight()) {
-					sudoku.getBlock(p, group);
-					std::cout << p << "   ";
-					for(auto f : group) std::cout << " " << f;
-					std::cout << std::endl;
-				}
+			size_t sideLen=atoi(argv[2]);
+			size_t max=sideLen*sideLen;
+			for(size_t i(0); i<max; i++) {
+				std::cout << i << " " << indexToXy(i,sideLen) << std::endl;
 			}
 		} else if(std::string(argv[1])=="generate") {
 
@@ -80,6 +81,7 @@ int main(int argc, char** argv) {
 				}
 			} else {
 				std::cout << "No solution found. Final state: " << std::endl;
+				solver.getWorkingVersion().printCandidates();
 				solver.getWorkingVersion().print();
 			}
 		} else {

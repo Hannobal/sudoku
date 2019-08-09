@@ -80,30 +80,29 @@ private:
 	void workBlocks();
 	void workGroup(Sudoku::FieldGroup const& group);
 
-	void findPossibleRowsAndColumns(InteractionStorage & interactions);
+	void findPossibleRowsAndColumns(InteractionStorage & blockInfo);
 	void findPossibleRowsAndColumns(InteractionBlock & block);
 
 	// check for block-row/column/block interactions
 	// should only be called with a block as group
-	void checkBlockRowColInteractions(InteractionStorage const& interactions);
+	void checkBlockRowColInteractions(InteractionStorage const& blockInfo);
 	void applyBlockRowColInteractions(
 			Sudoku::FieldGroup const& origGroup,
 			size_t refFieldIndex,
 			size_t number,
 			bool row);
 
-	/****************************
-	 * TODO: Block-Block interaction
-	 * - ideally separate struct with
-	 *   - possible row
-	 *   - possible col
-	 * - then first find all and store in array
-	 *   - 1st index: x
-	 *   - 2nd index: y
-	 *   - 3rd index: number
-	 * - then do block-column/row interaction
-	 * - then do block-block interaction
-	 ***********************/
+	// for block-block interaction, a candidate must be possible in only the
+	// same two rows/columns in the two blocks of the same block row/column
+	// then, the candidate is impossible for all fields of the same two
+	// rows/columns in all other blocks of that block row/column
+	void checkBlockBlockInteractions(InteractionStorage const& blockInfo);
+	void applyBlockBlockInteractions(
+			InteractionBlock const& block1,
+			InteractionBlock const& block2,
+			std::set<size_t> const& rowOrColumnIndices,
+			size_t number,
+			bool row);
 
 	void checkTuples(size_t nbTupleElements);
 	void checkTuples(
