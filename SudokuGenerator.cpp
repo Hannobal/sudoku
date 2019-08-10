@@ -1,21 +1,24 @@
 #include "SudokuGenerator.h"
 #include "SudokuScrambler.h"
-#include "SudokuSolver.h"
 #include <algorithm>
 
 SudokuGenerator::Settings SudokuGenerator::Settings::easy(
+		SudokuSolver::Settings::easy,
 		0.4f, 0.5f, 0, 0
 );
 
 SudokuGenerator::Settings SudokuGenerator::Settings::medium(
+		SudokuSolver::Settings::medium,
 		0.3f, 0.4f, 0, 0
 );
 
 SudokuGenerator::Settings SudokuGenerator::Settings::hard(
+		SudokuSolver::Settings::hard,
 		0.3f, 0.4f, 1, 1
 );
 
 SudokuGenerator::Settings SudokuGenerator::Settings::extreme(
+		SudokuSolver::Settings::extreme,
 		0.1f, 0.3f, 1, 2
 );
 

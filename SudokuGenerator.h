@@ -3,13 +3,15 @@
 
 #include "Sudoku.h"
 #include "DataContainerMacro.h"
+#include "SudokuSolver.h"
 #include <random>
 
 class SudokuGenerator {
 
 public:
 
-	DATA_CONTAINER(Settings,
+	DATA_CONTAINER_DERIVED(Settings,
+			((solverSettings,SudokuSolver::Settings, public)),
 			((minFilledRatio, float, 0.0, float))
 			((maxFilledRatio, float, 1.0, float))
 			((minAmbiguities, size_t, 0, size_t))

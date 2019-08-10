@@ -30,7 +30,11 @@ public:
 			((guessMode, GuessMode, GuessMode::Deterministic, GuessMode))
 			((maxTupleSize, size_t, 3, size_t))
 			((maxNbGuesses, size_t, std::numeric_limits<size_t>::max(), size_t))
-			((maxResults, size_t, std::numeric_limits<size_t>::max(), size_t)),)
+			((maxResults, size_t, std::numeric_limits<size_t>::max(), size_t)),
+			(static Settings easy;)
+			(static Settings medium;)
+			(static Settings hard;)
+			(static Settings extreme;))
 
 	typedef std::deque<Sudoku> ResultList;
 

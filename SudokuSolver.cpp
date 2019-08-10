@@ -5,6 +5,58 @@
 #include <algorithm>
 #include <set>
 
+SudokuSolver::Settings SudokuSolver::Settings::easy(
+		true,  // allowNakedSingle
+		true,  // allowHiddenSingle
+		false, // allowBlockRowColumn
+		false, // allowBlockBlock
+		false, // allowNakedTuples
+		false, // allowHiddenTuples
+		GuessMode::Deterministic,
+		0, // maxTupleSize
+		0, // maxNbGuesses
+		std::numeric_limits<size_t>::max() // maxResults
+);
+
+SudokuSolver::Settings SudokuSolver::Settings::medium(
+		true,  // allowNakedSingle
+		true,  // allowHiddenSingle
+		true,  // allowBlockRowColumn
+		true,  // allowBlockBlock
+		true,  // allowNakedTuples
+		true,  // allowHiddenTuples
+		GuessMode::Deterministic,
+		2, // maxTupleSize
+		0, // maxNbGuesses
+		std::numeric_limits<size_t>::max() // maxResults
+);
+
+SudokuSolver::Settings SudokuSolver::Settings::hard(
+		true, // allowNakedSingle
+		true, // allowHiddenSingle
+		true, // allowBlockRowColumn
+		true, // allowBlockBlock
+		true, // allowNakedTuples
+		true, // allowHiddenTuples
+		GuessMode::Deterministic,
+		4, // maxTupleSize
+		0, // maxNbGuesses
+		std::numeric_limits<size_t>::max() // maxResults
+);
+
+SudokuSolver::Settings SudokuSolver::Settings::extreme(
+		true, // allowNakedSingle
+		true, // allowHiddenSingle
+		true, // allowBlockRowColumn
+		true, // allowBlockBlock
+		true, // allowNakedTuples
+		true, // allowHiddenTuples
+		GuessMode::Deterministic,
+		4, // maxTupleSize
+		1, // maxNbGuesses
+		std::numeric_limits<size_t>::max() // maxResults
+);
+
 SudokuSolver::SudokuSolver(
 		Settings const& settings,
 		Sudoku const& sudoku,
