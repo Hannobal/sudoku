@@ -12,6 +12,7 @@ SudokuSolver::Settings SudokuSolver::Settings::easy(
 		false, // allowBlockBlock
 		false, // allowNakedTuples
 		false, // allowHiddenTuples
+		false, // nextIterOnChange
 		GuessMode::Deterministic,
 		0, // maxTupleSize
 		0, // maxNbGuesses
@@ -25,6 +26,7 @@ SudokuSolver::Settings SudokuSolver::Settings::medium(
 		true,  // allowBlockBlock
 		true,  // allowNakedTuples
 		true,  // allowHiddenTuples
+		false, // nextIterOnChange
 		GuessMode::Deterministic,
 		2, // maxTupleSize
 		0, // maxNbGuesses
@@ -32,12 +34,13 @@ SudokuSolver::Settings SudokuSolver::Settings::medium(
 );
 
 SudokuSolver::Settings SudokuSolver::Settings::hard(
-		true, // allowNakedSingle
-		true, // allowHiddenSingle
-		true, // allowBlockRowColumn
-		true, // allowBlockBlock
-		true, // allowNakedTuples
-		true, // allowHiddenTuples
+		true,  // allowNakedSingle
+		true,  // allowHiddenSingle
+		true,  // allowBlockRowColumn
+		true,  // allowBlockBlock
+		true,  // allowNakedTuples
+		true,  // allowHiddenTuples
+		false, // nextIterOnChange
 		GuessMode::Deterministic,
 		4, // maxTupleSize
 		0, // maxNbGuesses
@@ -45,12 +48,13 @@ SudokuSolver::Settings SudokuSolver::Settings::hard(
 );
 
 SudokuSolver::Settings SudokuSolver::Settings::extreme(
-		true, // allowNakedSingle
-		true, // allowHiddenSingle
-		true, // allowBlockRowColumn
-		true, // allowBlockBlock
-		true, // allowNakedTuples
-		true, // allowHiddenTuples
+		true,  // allowNakedSingle
+		true,  // allowHiddenSingle
+		true,  // allowBlockRowColumn
+		true,  // allowBlockBlock
+		true,  // allowNakedTuples
+		true,  // allowHiddenTuples
+		false, // nextIterOnChange
 		GuessMode::Deterministic,
 		4, // maxTupleSize
 		1, // maxNbGuesses
@@ -121,11 +125,17 @@ SudokuSolver::Result SudokuSolver::solveIteration() {
 	} else if(m_changed)
 		return Result::ambiguos;
 
-	if(m_settings.allowBlockBlock() || m_settings.allowBlockRowColumn())
+	if(m_settings.allowBlockBlock() || m_settings.allowBlockRowColumn()) {
 		checkInteractions();
+		if(m_settings.nextIterOnChange() && m_changed)
+			return Result::ambiguos;
+	}
 
-	if(m_settings.allowNakedTuples() || m_settings.allowHiddenTuples())
+	if(m_settings.allowNakedTuples() || m_settings.allowHiddenTuples()) {
 		checkTuples();
+		if(m_settings.nextIterOnChange() && m_changed)
+			return Result::ambiguos;
+	}
 
 	return Result::ambiguos;
 }

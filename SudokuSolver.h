@@ -27,6 +27,7 @@ public:
 			((allowBlockBlock, bool, true, bool))
 			((allowNakedTuples, bool, true, bool))
 			((allowHiddenTuples, bool, true, bool))
+			((nextIterOnChange, bool, false, bool))
 			((guessMode, GuessMode, GuessMode::Deterministic, GuessMode))
 			((maxTupleSize, size_t, 3, size_t))
 			((maxNbGuesses, size_t, std::numeric_limits<size_t>::max(), size_t))
