@@ -6,34 +6,28 @@
 #include <set>
 
 SudokuSolver::SudokuSolver(
+		Settings const& settings,
 		Sudoku const& sudoku,
-		Mode mode,
-		int maxAmbiguities,
-		size_t maxResults,
 		size_t depth
 ) :
+		m_settings(settings),
 		m_sudoku(sudoku),
-		m_mode(mode),
-		m_maxAmbiguities(maxAmbiguities),
-		m_maxResults(maxResults),
 		m_depth(depth+1)
 {}
 
 SudokuSolver::SudokuSolver(
 		SudokuSolver const& other
 ) :
-				m_sudoku(other.m_sudoku),
-				m_mode(other.m_mode),
-				m_maxAmbiguities(other.m_maxAmbiguities),
-				m_maxResults(other.m_maxResults),
-				m_depth(other.m_depth+1)
+		m_settings(other.m_settings),
+		m_sudoku(other.m_sudoku),
+		m_depth(other.m_depth+1)
 {}
 
 SudokuSolver::Result SudokuSolver::solve() {
 
 	Result iterationResult;
 	do {
-		std::cout << "NEXT ITERATION\n";
+//		std::cout << "NEXT ITERATION\n";
 		iterationResult=solveIteration();
 	} while(iterationResult==Result::ambiguos && m_changed);
 
@@ -41,14 +35,14 @@ SudokuSolver::Result SudokuSolver::solve() {
 		return Result::solved;
 	else if(iterationResult==Result::impossible)
 		return Result::impossible;
-	else if(m_maxAmbiguities>=0 && m_sudoku.nbGuesses()>=m_maxAmbiguities) {
+	else if(m_sudoku.nbGuesses()>=m_settings.maxNbGuesses()) {
 //		std::cout << "MAX GUESSES REACHED\n" << m_sudoku.nbGuesses() << " vs " << m_maxAmbiguities << std::endl;
 		return Result::ambiguos;
 	}
 
-	if(m_mode==Mode::Deterministic)
+	if(m_settings.guessMode()==GuessMode::Deterministic)
 		educatedGuess();
-	else if(m_mode==Mode::RandomGuessing)
+	else if(m_settings.guessMode()==GuessMode::Random)
 		randomGuess();
 
 	if(m_results.empty())
@@ -60,11 +54,14 @@ SudokuSolver::Result SudokuSolver::solve() {
 SudokuSolver::Result SudokuSolver::solveIteration() {
 
 	m_changed = false;
-	// sole and unique candidates
-	workFields();
-	workRows();
-	workColumns();
-	workBlocks();
+
+	if(m_settings.allowNakedSingle() || m_settings.allowNakedTuples()) {
+		// sole and unique candidates
+		workFields();
+		workRows();
+		workColumns();
+		workBlocks();
+	}
 
 	if(m_sudoku.isSolved()) {
 		m_results.push_back(m_sudoku);
@@ -72,21 +69,11 @@ SudokuSolver::Result SudokuSolver::solveIteration() {
 	} else if(m_changed)
 		return Result::ambiguos;
 
-	InteractionStorage blockInfo;
-	findPossibleRowsAndColumns(blockInfo);
+	if(m_settings.allowBlockBlock() || m_settings.allowBlockRowColumn())
+		checkInteractions();
 
-	// now check and eliminated candidate pairs
-	std::cout << "CHECKING BLOCK-ROW/COLUMN\n";
-	checkBlockRowColInteractions(blockInfo);
-
-	std::cout << "CHECKING BLOCK-BLOCK\n";
-	checkBlockBlockInteractions(blockInfo);
-
-	// now checkTuples
-	std::cout << "CHECKING TWINS\n";
-	checkTuples(2);
-	std::cout << "CHECKING TRIPLETS\n";
-	checkTuples(3);
+	if(m_settings.allowNakedTuples() || m_settings.allowHiddenTuples())
+		checkTuples();
 
 	return Result::ambiguos;
 }
@@ -177,6 +164,22 @@ void SudokuSolver::findPossibleRowsAndColumns(InteractionStorage & interactions)
 			m_sudoku.getBlock(p, interactions[i].fields);
 			findPossibleRowsAndColumns(interactions[i]);
 		}
+	}
+}
+
+void SudokuSolver::checkInteractions() {
+	InteractionStorage blockInfo;
+	findPossibleRowsAndColumns(blockInfo);
+
+	// now check and eliminated candidate pairs
+	if(m_settings.allowBlockRowColumn()) {
+//		std::cout << "CHECKING BLOCK-ROW/COLUMN\n";
+		checkBlockRowColInteractions(blockInfo);
+	}
+
+	if(m_settings.allowBlockBlock()) {
+//		std::cout << "CHECKING BLOCK-BLOCK\n";
+		checkBlockBlockInteractions(blockInfo);
 	}
 }
 
@@ -294,6 +297,11 @@ void SudokuSolver::applyBlockBlockInteractions(
 	}
 }
 
+void SudokuSolver::checkTuples() {
+	for(size_t tupleSize(1); tupleSize<m_settings.maxTupleSize(); ++tupleSize)
+		checkTuples(tupleSize);
+}
+
 void SudokuSolver::checkTuples(
 		size_t nbTupleElements
 ){
@@ -390,7 +398,7 @@ void SudokuSolver::educatedGuess()
 		if(solver.solve() == Result::solved) {
 			// move results from child solver
 			moveResults(solver);
-			if(m_results.size()>=m_maxResults)
+			if(m_results.size()>=m_settings.maxResults())
 				return;
 		}
 	}
@@ -401,7 +409,9 @@ void SudokuSolver::randomGuess()
 //	std::cout << "SudokuSolver::randomGuess " << m_depth << std::endl;
 	// check if the current sudoku is solvable at all
 	{
-		SudokuSolver solver(m_sudoku,Mode::Deterministic,m_maxAmbiguities,m_depth);
+		Settings newSettings(m_settings);
+		newSettings.guessMode(GuessMode::Deterministic);
+		SudokuSolver solver(newSettings,m_sudoku,m_depth);
 		if(solver.solve()==Result::impossible)
 			return;
 	}
@@ -425,7 +435,7 @@ void SudokuSolver::randomGuess()
 			Result res = solver.solve();
 			if(res == Result::solved) {
 				moveResults(solver);
-				if(m_results.size()>=m_maxResults)
+				if(m_results.size()>=m_settings.maxResults())
 					return;
 			}
         }

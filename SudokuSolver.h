@@ -1,4 +1,5 @@
 #include "Sudoku.h"
+#include "DataContainerMacro.h"
 #include <memory>
 #include <deque>
 #include <limits>
@@ -11,25 +12,35 @@ class SudokuSolver {
 
 public:
 
+	enum class GuessMode : char {
+		Deterministic,
+		Random
+	};
+	enum class Result : char {
+		solved, impossible, ambiguos
+	};
+
+	DATA_CONTAINER(Settings,
+			((allowNakedSingle, bool, true, bool))
+			((allowHiddenSingle, bool, true, bool))
+			((allowBlockRowColumn, bool, true, bool))
+			((allowBlockBlock, bool, true, bool))
+			((allowNakedTuples, bool, true, bool))
+			((allowHiddenTuples, bool, true, bool))
+			((guessMode, GuessMode, GuessMode::Deterministic, GuessMode))
+			((maxTupleSize, size_t, 3, size_t))
+			((maxNbGuesses, size_t, std::numeric_limits<size_t>::max(), size_t))
+			((maxResults, size_t, std::numeric_limits<size_t>::max(), size_t)),)
+
 	typedef std::deque<Sudoku> ResultList;
 
 	typedef std::vector<size_t> CandidateList;
 	typedef std::deque<size_t> FieldList;
 	typedef std::map<CandidateList,FieldList> TupleLookup;
 
-	enum class Mode : char {
-		Deterministic,
-		RandomGuessing
-	};
-	enum class Result : char {
-		solved, impossible, ambiguos
-	};
-
 	SudokuSolver(
+			Settings const& settings,
 			Sudoku const& sudoku,
-			Mode mode = Mode::Deterministic,
-			int maxAmbiguities=-1,
-			size_t maxResults=std::numeric_limits<size_t>::max(),
 			size_t depth=0
 	);
 
@@ -60,10 +71,8 @@ private:
 	//index: BlockID
 	typedef std::vector<InteractionBlock> InteractionStorage;
 
+	Settings m_settings;
 	Sudoku m_sudoku;
-	Mode m_mode;
-	int m_maxAmbiguities;
-	size_t m_maxResults;
 	size_t m_depth;
 	bool m_changed = false;
 	ResultList m_results;
@@ -79,6 +88,8 @@ private:
 	void workColumns();
 	void workBlocks();
 	void workGroup(Sudoku::FieldGroup const& group);
+
+	void checkInteractions();
 
 	void findPossibleRowsAndColumns(InteractionStorage & blockInfo);
 	void findPossibleRowsAndColumns(InteractionBlock & block);
@@ -104,6 +115,7 @@ private:
 			size_t number,
 			bool row);
 
+	void checkTuples();
 	void checkTuples(size_t nbTupleElements);
 	void checkTuples(
 			TupleLookup::const_iterator tuple,

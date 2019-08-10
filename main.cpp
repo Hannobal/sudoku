@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 				throw std::runtime_error("could not open file "+std::string(argv[2]));
 			Sudoku sudoku;
 			file >> sudoku;
-			SudokuSolver solver(sudoku, SudokuSolver::Mode::Deterministic);
+			SudokuSolver solver(SudokuSolver::Settings(),sudoku);
 			SudokuSolver::Result result = solver.solve();
 			if(result==SudokuSolver::Result::solved) {
 				std::cout << "found " << solver.getSolved().size() << " solution(s):" << std::endl;

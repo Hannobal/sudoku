@@ -2,32 +2,22 @@
 #define SUDOKUGENERATOR_H_
 
 #include "Sudoku.h"
+#include "DataContainerMacro.h"
 #include <random>
 
 class SudokuGenerator {
 
 public:
 
-	class Settings {
-	public:
-		Settings();
-		Settings(
-			float minFilledRatio,
-			float maxFilledRatio,
-			int minAmbiguities,
-			int maxAmbiguities
-		);
-
-		float m_minFilledRatio;
-		float m_maxFilledRatio;
-		int m_minAmbiguities;
-		int m_maxAmbiguities;
-
-		static Settings easy;
-		static Settings medium;
-		static Settings hard;
-		static Settings extreme;
-	};
+	DATA_CONTAINER(Settings,
+			((minFilledRatio, float, 0.0, float))
+			((maxFilledRatio, float, 1.0, float))
+			((minAmbiguities, size_t, 0, size_t))
+			((maxAmbiguities, size_t, 0, size_t)),
+			(static Settings easy;)
+			(static Settings medium;)
+			(static Settings hard;)
+			(static Settings extreme;))
 
 	SudokuGenerator(Settings const& settings, Sudoku && sudoku);
 

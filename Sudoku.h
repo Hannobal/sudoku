@@ -162,7 +162,7 @@ public:
 	 * be necessary. A solver may set this to keep track of how many guesses
 	 * were required.
 	 */
-	int nbGuesses() const { return m_nbGuesses; }
+	size_t nbGuesses() const { return m_nbGuesses; }
 
 	 /** Check if the field already has a number entered. */
 	bool isSolved(size_t fieldIndex) const {
@@ -349,7 +349,7 @@ private:
 	size_t m_nbBlockColumns; /**< The number of block columns */
 
 	size_t m_nbSolved; /**< The number of fields that have already been solved */
-	int m_nbGuesses; /**< The number of ambiguities, that have been resolved */
+	size_t m_nbGuesses; /**< The number of ambiguities, that have been resolved */
 
 	// each field has a bitset of length "size" which for each number
 	// states whether it's still possible to enter this number

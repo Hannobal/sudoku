@@ -3,24 +3,6 @@
 #include "SudokuSolver.h"
 #include <algorithm>
 
-SudokuGenerator::Settings::Settings() :
-m_minFilledRatio(0.0f),
-m_maxFilledRatio(1.0f),
-m_minAmbiguities(0),
-m_maxAmbiguities(0)
-{}
-
-SudokuGenerator::Settings::Settings(
-		float minFilledRatio,
-		float maxFilledRatio,
-		int minAmbiguities,
-		int maxAmbiguities) :
-		m_minFilledRatio(minFilledRatio),
-		m_maxFilledRatio(maxFilledRatio),
-		m_minAmbiguities(minAmbiguities),
-		m_maxAmbiguities(maxAmbiguities)
-{}
-
 SudokuGenerator::Settings SudokuGenerator::Settings::easy(
 		0.4f, 0.5f, 0, 0
 );
@@ -58,7 +40,7 @@ bool SudokuGenerator::generate() {
 	m_sudoku.trivialSolution();
 	scramble();
 	std::uniform_real_distribution<float> randomFloat(
-			m_settings.m_minFilledRatio, m_settings.m_maxFilledRatio);
+			m_settings.minFilledRatio(), m_settings.maxFilledRatio());
 	m_targetFilledRatio = randomFloat(m_randomEngine);
 	std::cout << "m_targetFilledRatio = " << m_targetFilledRatio << std::endl;
 	return tryRemoveSolution(m_sudoku, 0);
@@ -90,10 +72,11 @@ bool SudokuGenerator::tryRemoveSolution(Sudoku sudoku, int depth) {
 		sudoku.clearSolution(fieldIndex);
 		m_nbAttempts++;
 //		std::cout << sudoku;
+		SudokuSolver::Settings solverSettings;
+		solverSettings.maxNbGuesses(m_settings.maxAmbiguities());
 		SudokuSolver solver(
-				sudoku,
-				SudokuSolver::Mode::Deterministic,
-				m_settings.m_maxAmbiguities);
+				solverSettings,
+				sudoku);
 		// check if it's still possible to solve this
 		SudokuSolver::Result result = solver.solve();
 
@@ -113,7 +96,7 @@ bool SudokuGenerator::tryRemoveSolution(Sudoku sudoku, int depth) {
 //				return false;
 			if(tryRemoveSolution(sudoku, depth+1))
 				return true;
-		} else if(solver.getSolved()[0].nbGuesses()<=m_settings.m_maxAmbiguities) {
+		} else if(solver.getSolved()[0].nbGuesses()<=m_settings.maxAmbiguities()) {
 			m_solution = solver.getSolved()[0];
 			m_sudoku = sudoku;
 			return true;
