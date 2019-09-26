@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iostream>
 
+// very similar to the std::bitset but with dynamic size
+
 template <typename Storage=unsigned char>
 class DynamicBitset {
 public:
@@ -19,13 +21,22 @@ public:
 		m_bytes(s%(sizeof(Storage)*8)==0 ? s/(sizeof(Storage)*8) : s/(sizeof(Storage)*8)+1)
 	{};
 
+	// check if all bits are set
 	bool all() {return m_count == m_size;}
+
+	// check if at least one bit is set
 	bool any() {return m_count > static_cast<size_t>(0);}
+
+	// check if no bit is set
 	bool none() {return m_count == static_cast<size_t>(0);}
+
+	// returns the number of set bits
 	constexpr size_t count() const noexcept {return m_count;}
+
+	// returns the total number bits
 	constexpr size_t size() const noexcept {return m_size;}
 
-	 // set all bits to true
+	// set all bits to true
 	void set() noexcept
 	{
 		m_count = m_size;
@@ -33,14 +44,14 @@ public:
 			m_bytes[i]=~(static_cast<Storage>(0));
 	}
 
-	 // sets a single bit
+	// sets a single bit (no boundary check!)
 	void set(size_t pos, bool value = true)
 	 {
-		if((*this)[pos]!=value)
+		if((*this)[pos]==value)
 			flip(pos);
 	}
 
-	 // reset all bits to false
+	// reset all bits to false
 	void reset() noexcept
 	 {
 		m_count = static_cast<size_t>(0);
@@ -48,7 +59,7 @@ public:
 			m_bytes[i]=static_cast<Storage>(0);
 	}
 
-	 // reset a single bit to false
+	// reset a single bit to false (no boundary check!)
 	void reset(size_t pos)
 	 {
 		if((*this)[pos]) {
@@ -58,14 +69,16 @@ public:
 		}
 	}
 
-	void flip() noexcept // flips all bits
+	// flips all bits
+	void flip() noexcept
 	{
 		for(size_t i=0;i<m_bytes.size();i++)
 			m_bytes[i] ^= ~(static_cast<Storage>(0));
 		m_count = m_size - m_count;
 	}
 
-	void flip(size_t pos) // flip a single bit
+	// flip a single bit (no boundary check!)
+	void flip(size_t pos)
 	 {
 		if((*this)[pos])
 			m_count--;
@@ -75,18 +88,21 @@ public:
 				(static_cast<size_t>(1) << pos%(sizeof(Storage)*8));
 	}
 
+	// access a bit (no boundary check!)
 	bool operator[]( std::size_t pos ) const
 	{
 		return (m_bytes[pos/(sizeof(Storage)*8)] >>
 				pos%(sizeof(Storage)*8)) & static_cast<size_t>(1);
 	}
 
+	// check if a bit is set
 	bool test( size_t pos ) const
 	{
 		return m_bytes[pos/(sizeof(Storage)*8)] &
 				(static_cast<size_t>(1) << pos%(sizeof(Storage)*8));
 	}
 
+	// returns a string of all bits
 	template<
 	    class CharT = char,
 	    class Traits = std::char_traits<CharT>,
@@ -100,7 +116,9 @@ public:
 		return strm.str();
 	}
 
+	// not yet implemented
 	unsigned long to_ulong() const;
+	// not yet implemented
 	unsigned long long to_ullong() const;
 
 	void resize(size_t s) {
@@ -118,6 +136,7 @@ public:
 		m_size=s;
 	}
 
+	// returns a vector of all bits that are (un)set
 	void getIndices(std::vector<size_t>& indices, bool isSet=true) {
 		indices.resize(isSet ? count() : size()-count());
 		size_t j=0;
