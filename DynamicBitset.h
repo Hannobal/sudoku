@@ -47,7 +47,7 @@ public:
 	// sets a single bit (no boundary check!)
 	void set(size_t pos, bool value = true)
 	 {
-		if((*this)[pos]==value)
+		if((*this)[pos]!=value)
 			flip(pos);
 	}
 
