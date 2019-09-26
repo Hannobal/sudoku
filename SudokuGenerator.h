@@ -14,8 +14,7 @@ public:
 			((solverSettings,SudokuSolver::Settings, public)),
 			((minFilledRatio, float, 0.0, float))
 			((maxFilledRatio, float, 1.0, float))
-			((minAmbiguities, size_t, 0, size_t))
-			((maxAmbiguities, size_t, 0, size_t)),
+			((minNbGuesses, size_t, 0, size_t)),
 			(static Settings easy;)
 			(static Settings medium;)
 			(static Settings hard;)

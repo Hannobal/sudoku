@@ -4,22 +4,22 @@
 
 SudokuGenerator::Settings SudokuGenerator::Settings::easy(
 		SudokuSolver::Settings::easy,
-		0.4f, 0.5f, 0, 0
+		0.4f, 0.5f, 0
 );
 
 SudokuGenerator::Settings SudokuGenerator::Settings::medium(
 		SudokuSolver::Settings::medium,
-		0.3f, 0.4f, 0, 0
+		0.3f, 0.4f, 0
 );
 
 SudokuGenerator::Settings SudokuGenerator::Settings::hard(
 		SudokuSolver::Settings::hard,
-		0.3f, 0.4f, 1, 1
+		0.3f, 0.4f, 1
 );
 
 SudokuGenerator::Settings SudokuGenerator::Settings::extreme(
 		SudokuSolver::Settings::extreme,
-		0.1f, 0.3f, 1, 2
+		0.1f, 0.3f, 1
 );
 
 
@@ -40,6 +40,8 @@ SudokuGenerator::SudokuGenerator(Settings && settings, Sudoku && sudoku) :
 {}
 
 bool SudokuGenerator::generate() {
+	m_settings.nextIterOnChange(true);
+	m_settings.maxResults(2);
 	m_sudoku.trivialSolution();
 	scramble();
 	std::uniform_real_distribution<float> randomFloat(
@@ -75,13 +77,12 @@ bool SudokuGenerator::tryRemoveSolution(Sudoku sudoku, int depth) {
 		sudoku.clearSolution(fieldIndex);
 		m_nbAttempts++;
 //		std::cout << sudoku;
-		SudokuSolver::Settings solverSettings;
-		solverSettings.maxNbGuesses(m_settings.maxAmbiguities());
 		SudokuSolver solver(
-				solverSettings,
+				m_settings,
 				sudoku);
 		// check if it's still possible to solve this
 		SudokuSolver::Result result = solver.solve();
+		std::cout << "nsolved="<<sudoku.nbSolved() << " SudokuSolver::Result=" << result << std::endl;
 
 		// no solution => discard and next try;
 		if(result!=SudokuSolver::Result::solved)
@@ -99,7 +100,7 @@ bool SudokuGenerator::tryRemoveSolution(Sudoku sudoku, int depth) {
 //				return false;
 			if(tryRemoveSolution(sudoku, depth+1))
 				return true;
-		} else if(solver.getSolved()[0].nbGuesses()<=m_settings.maxAmbiguities()) {
+		} else if(solver.getSolved()[0].nbGuesses()<=m_settings.maxNbGuesses()) {
 			m_solution = solver.getSolved()[0];
 			m_sudoku = sudoku;
 			return true;
