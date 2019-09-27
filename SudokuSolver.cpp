@@ -92,7 +92,7 @@ SudokuSolver::Result SudokuSolver::solveIteration() {
 void SudokuSolver::workFields() {
 	size_t nbFields=m_sudoku.nbFields();
 	for(size_t field=0; field<nbFields; field++)
-		workField(field);
+		if(!m_sudoku.isSolved(field)) workField(field);
 }
 
 void SudokuSolver::workRows()
