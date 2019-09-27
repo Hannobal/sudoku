@@ -8,14 +8,17 @@
 #ifndef SUDOKUSOLVER_H_
 #define SUDOKUSOLVER_H_
 
+enum class GuessMode : char {
+	Deterministic,
+	Random
+};
+
+std::ostream& operator << (std::ostream& os, GuessMode res);
+
 class SudokuSolver {
 
 public:
 
-	enum class GuessMode : char {
-		Deterministic,
-		Random
-	};
 	enum class Result : char {
 		solved, impossible, ambiguos
 	};

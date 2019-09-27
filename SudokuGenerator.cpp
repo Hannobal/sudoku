@@ -2,34 +2,15 @@
 #include "SudokuScrambler.h"
 #include <algorithm>
 
-SudokuGenerator::Settings SudokuGenerator::Settings::easy(
-		SudokuSolver::Settings::easy,
-		0.4f, 0.5f, 0
-);
-
-SudokuGenerator::Settings SudokuGenerator::Settings::medium(
-		SudokuSolver::Settings::medium,
-		0.3f, 0.4f, 0
-);
-
-SudokuGenerator::Settings SudokuGenerator::Settings::hard(
-		SudokuSolver::Settings::hard,
-		0.3f, 0.4f, 1
-);
-
-SudokuGenerator::Settings SudokuGenerator::Settings::extreme(
-		SudokuSolver::Settings::extreme,
-		0.1f, 0.3f, 1
-);
-
-
 SudokuGenerator::SudokuGenerator(Settings const& settings, Sudoku && sudoku) :
 		m_settings(settings),
 		m_sudoku(sudoku),
 		m_targetFilledRatio(0.0f),
 		m_nbAttempts(0),
 		m_randomEngine(m_randomDevice())
-{}
+{
+
+}
 
 SudokuGenerator::SudokuGenerator(Settings && settings, Sudoku && sudoku) :
 		m_settings(settings),

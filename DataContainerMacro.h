@@ -56,6 +56,7 @@ DATA_CONTAINER_DERIVED(RectangleSettings,           class name
 #define DATA_CONTAINER(classname,dataMembers,additionalDecl) \
 	class classname { \
 	public: \
+	virtual ~classname(){}\
 	\
 	classname(\
 			BOOST_PP_SEQ_FOR_EACH(DATA_ELEMENT_CONSTR_ARG, , BOOST_PP_SEQ_FIRST_N(1,dataMembers))\
@@ -73,6 +74,10 @@ DATA_CONTAINER_DERIVED(RectangleSettings,           class name
 	BOOST_PP_SEQ_FOR_EACH(DATA_ELEMENT_GETTER, , dataMembers) \
 	\
 	BOOST_PP_SEQ_FOR_EACH(DATA_ELEMENT_SETTER, , dataMembers) \
+	\
+	virtual void print() {\
+		BOOST_PP_SEQ_FOR_EACH(DATA_ELEMENT_PRINT, , dataMembers) \
+	}\
 	\
 	BOOST_PP_SEQ_FOR_EACH(ADDITIONAL_DECLARATION, , additionalDecl) \
 	\
@@ -114,6 +119,11 @@ DATA_CONTAINER_DERIVED(RectangleSettings,           class name
 	BOOST_PP_SEQ_FOR_EACH(DATA_ELEMENT_SETTER, , dataMembers) \
 	\
 	BOOST_PP_SEQ_FOR_EACH(ADDITIONAL_DECLARATION, , additionalDecl) \
+	\
+	virtual void print() {\
+		BOOST_PP_SEQ_FOR_EACH(BASE_PRINT, , bases) \
+		BOOST_PP_SEQ_FOR_EACH(DATA_ELEMENT_PRINT, , dataMembers) \
+	}\
 	\
 	private: \
 	\
@@ -161,6 +171,9 @@ DATA_CONTAINER_DERIVED(RectangleSettings,           class name
 #define DATA_ELEMENT_SETTER(r, data, elem) \
 	void BOOST_PP_TUPLE_ELEM(3,0,elem)(BOOST_PP_TUPLE_ELEM(3,3,elem) BOOST_PP_TUPLE_ELEM(3,0,elem)) { BOOST_PP_CAT(m_, BOOST_PP_TUPLE_ELEM(3,0,elem)) = BOOST_PP_TUPLE_ELEM(3,0,elem);}\
 
+#define DATA_ELEMENT_PRINT(r, data, elem) \
+	std::cout << BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(3,0,elem)) << " : " << BOOST_PP_CAT(m_, BOOST_PP_TUPLE_ELEM(3,0,elem)) << std::endl;\
+
 #define DATA_ELEMENT_SERIALIZATION(r, data, elem) \
 	& boost::serialization::make_nvp(BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(3,0,elem)), BOOST_PP_CAT(m_, BOOST_PP_TUPLE_ELEM(3,0,elem)))
 
@@ -188,5 +201,8 @@ DATA_CONTAINER_DERIVED(RectangleSettings,           class name
 
 #define BASE_SERIALIZATION(r, data, elem) \
 	& boost::serialization::base_object<BOOST_PP_TUPLE_ELEM(3,1,elem)>(*this)\
+
+#define BASE_PRINT(r, data, elem) \
+	BOOST_PP_TUPLE_ELEM(3,1,elem)::print();\
 
 #endif /* UTILITY_DATACONTAINERMACRO_H_ */
