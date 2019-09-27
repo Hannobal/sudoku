@@ -126,17 +126,11 @@ void SudokuSolver::workBlocks()
 
 void SudokuSolver::workField(size_t fieldIndex)
 {
-	if(m_sudoku.nbCandidates(fieldIndex)==1) {
-		for(size_t i=1; i<=m_sudoku.sideLength(); i++) {
-			if(m_sudoku.isCandidate(fieldIndex, i)) {
-				m_sudoku.enterSolution(fieldIndex, i);
-				m_changed = true;
-				return;
-			}
-		}
-		throw std::runtime_error("SudokuSolver::workField: did not find the number that should be possible in field "+
-				std::to_string(fieldIndex));
-	}
+	if(m_sudoku.nbCandidates(fieldIndex)!=1) return;
+	std::vector<size_t> candidates;
+	m_sudoku.getCandidates(fieldIndex, candidates);
+	m_sudoku.enterSolution(fieldIndex, candidates[0]);
+	m_changed = true;
 }
 
 void SudokuSolver::workGroup(const Sudoku::FieldGroup& group)
