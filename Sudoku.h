@@ -211,6 +211,8 @@ public:
 	 * candidates for all numbers for affected fields (self, column, row, block) */
 	void clearSolution(size_t fieldIndex);
 
+	void clearSolutionHelper(size_t fieldIndex, size_t number, FieldGroup const& group);
+
 	/** Removes the number entered in a certain field and re-evaluates the
 	 * candidates for all numbers for affected fields (self, column, row, block) */
 	void clearSolution(GridPoint const& p) {
@@ -321,8 +323,7 @@ private:
 	/** change the possibility to enter number i into the
 	 * field with index fieldIndex to true */
 	void makePossible(size_t fieldIndex, size_t i) {
-		if(checkPossible(fieldIndex,i))
-			m_possible[fieldIndex].set(i-1);
+		m_possible[fieldIndex].set(i-1);
 	}
 
 	/** change the possibility to enter number i into the

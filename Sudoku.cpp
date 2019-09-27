@@ -189,20 +189,27 @@ void Sudoku::clearSolution(size_t fieldIndex)
 	size_t number=getSolution(fieldIndex);
 	m_solution[fieldIndex]=0;
 
+	// set all numbers to possible in the field where the solution was removed
 	for(size_t i=1; i<=m_sideLength; ++i)
 		makePossible(fieldIndex,i);
 
 	FieldGroup group(m_sideLength);
 	getRow(fieldIndex,group);
-	for(auto field : group)
-		makePossible(field,number);
+	clearSolutionHelper(fieldIndex, number, group);
 	getColumn(fieldIndex,group);
-	for(auto field : group)
-		makePossible(field,number);
+	clearSolutionHelper(fieldIndex, number, group);
 	getBlock(fieldIndex,group);
-	for(auto field : group)
-		makePossible(field,number);
+	clearSolutionHelper(fieldIndex, number, group);
 	m_nbSolved--;
+}
+
+void Sudoku::clearSolutionHelper(size_t fieldIndex, size_t number, FieldGroup const& group) {
+	for(auto field : group) {
+		makePossible(field,number);
+		if(isSolved(field)) {
+			makeImpossible(fieldIndex,getSolution(field));
+		}
+	}
 }
 
 void Sudoku::trivialSolution() {
