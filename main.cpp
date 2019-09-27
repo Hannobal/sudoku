@@ -52,7 +52,6 @@ int main(int argc, char** argv) {
 			);
 
 			if(generator.generate()) {
-				std::cout << "# attempts: " << generator.nbAttempts() << std::endl;
 				std::cout << "Sudoku:" << std::endl;
 				std::cout << generator.getSudoku();
 				std::cout << "Solution:" << std::endl;
@@ -60,6 +59,7 @@ int main(int argc, char** argv) {
 			} else {
 				std::cout << "no success\n";
 			}
+			std::cout << "# attempts: " << generator.nbAttempts() << std::endl;
 
 		} else if(std::string(argv[1])=="solve") {
 

@@ -142,6 +142,9 @@ public:
 	/* The number of fields that already contain a solution */
 	size_t nbSolved() const { return m_nbSolved; }
 
+	/* The number of fields that do not contain a solution */
+	size_t nbUnsolved() const { return nbFields()-m_nbSolved; }
+
 	/* The number of fields that already contain a solution */
 	float solvedRatio() const {
 		return static_cast<float>(m_nbSolved) /

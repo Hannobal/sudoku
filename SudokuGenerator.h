@@ -37,13 +37,26 @@ public:
 private:
 	void scramble();
 
-	bool tryRemoveSolution(Sudoku sudoku, int depth);
+	bool tryRemoveSolution(
+			Sudoku sudoku,
+			size_t index,
+			size_t depth); // depth is for debugging only
+
+	/*
+	 * iterates recursively over all combinations of solved/unsolved fields
+	 * and returns true on the first sudoku it finds that matches the settings.
+	 * The number of possible combinations can be calculated by the binomial
+	 * coefficient nbFields!/(targetSolved!*(nbFields-targetSolved)!)
+	 * Despite being deterministic, this may not be best way to go
+	 */
+	bool tryRemoveSolutionOld(Sudoku sudoku, int depth);
 
 	Settings m_settings;
 	Sudoku m_sudoku;
 	Sudoku m_solution;
-    float m_targetFilledRatio;
+    float m_targetNbSolvedFields;
     size_t m_nbAttempts;
+    std::vector<size_t> m_processingOrder;
 
     std::random_device m_randomDevice;
     std::default_random_engine m_randomEngine;
