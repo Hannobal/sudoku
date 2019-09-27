@@ -190,10 +190,12 @@ void Sudoku::clearSolution(size_t fieldIndex)
 	m_solution[fieldIndex]=0;
 
 	// set all numbers to possible in the field where the solution was removed
-	for(size_t i=1; i<=m_sideLength; ++i)
-		makePossible(fieldIndex,i);
+	// will be reduced by clearSolutionHelper
+	m_possible[fieldIndex].set();
 
 	FieldGroup group(m_sideLength);
+	// since fields are treated twice it might be more efficient to first merge the
+	// groups, but the operation in the clearSolutionHelper is quite trivial.
 	getRow(fieldIndex,group);
 	clearSolutionHelper(fieldIndex, number, group);
 	getColumn(fieldIndex,group);
@@ -205,9 +207,10 @@ void Sudoku::clearSolution(size_t fieldIndex)
 
 void Sudoku::clearSolutionHelper(size_t fieldIndex, size_t number, FieldGroup const& group) {
 	for(auto field : group) {
-		makePossible(field,number);
 		if(isSolved(field)) {
 			makeImpossible(fieldIndex,getSolution(field));
+		} else {
+			makePossible(field,number);
 		}
 	}
 }
