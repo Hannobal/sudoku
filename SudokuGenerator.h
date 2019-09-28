@@ -37,11 +37,6 @@ public:
 private:
 	void scramble();
 
-	bool tryRemoveSolution(
-			Sudoku sudoku,
-			size_t index,
-			size_t depth); // depth is for debugging only
-
 	/*
 	 * iterates recursively over all combinations of solved/unsolved fields
 	 * and returns true on the first sudoku it finds that matches the settings.
@@ -49,7 +44,17 @@ private:
 	 * coefficient nbFields!/(targetSolved!*(nbFields-targetSolved)!)
 	 * Despite being deterministic, this may not be best way to go
 	 */
-	bool tryRemoveSolutionOld(Sudoku sudoku, int depth);
+	bool tryRemoveSolutionDeterministic(
+			Sudoku sudoku,
+			size_t index,
+			size_t depth); // depth is for debugging only
+
+	/*
+	 * randomly clears m_targetNbSolvedFields from the filled sudoku and checks
+	 * if it can be solved with the given settings. Works well for 9x9 sudokus
+	 * and appears to be faster than the deterministic method.
+	 */
+	bool tryRemoveSolutionRandom();
 
 	Settings m_settings;
 	Sudoku m_sudoku;

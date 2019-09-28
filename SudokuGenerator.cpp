@@ -40,7 +40,11 @@ bool SudokuGenerator::generate() {
 	std::iota (std::begin(m_processingOrder), std::end(m_processingOrder), 0);
 	std::shuffle(m_processingOrder.begin(), m_processingOrder.end(), m_randomEngine);
 
-	return tryRemoveSolution(m_sudoku, 0, 0);
+	while(!tryRemoveSolutionRandom()) {
+		if(m_nbAttempts%10000==0) std::cout << "attempt "<<m_nbAttempts << std::endl;
+	}
+	return true;
+//	return tryRemoveSolution(m_sudoku, 0, 0);
 }
 
 void SudokuGenerator::scramble() {
@@ -49,7 +53,7 @@ void SudokuGenerator::scramble() {
 	m_sudoku=scrambler.sudoku();
 }
 
-bool SudokuGenerator::tryRemoveSolution(
+bool SudokuGenerator::tryRemoveSolutionDeterministic(
 		Sudoku sudoku,
 		size_t index,
 		size_t depth) {
@@ -85,9 +89,34 @@ bool SudokuGenerator::tryRemoveSolution(
 
 	size_t max=m_processingOrder.size()-index;
 	for(size_t i=1; i<max; i++)
-		if(tryRemoveSolution(sudoku, index+i, depth+1))
+		if(tryRemoveSolutionDeterministic(sudoku, index+i, depth+1))
 			return true;
 
 	return false;
 }
 
+bool SudokuGenerator::tryRemoveSolutionRandom() {
+	m_nbAttempts++;
+	Sudoku sudoku(m_sudoku);
+	std::shuffle(m_processingOrder.begin(), m_processingOrder.end(), m_randomEngine);
+	for(int i=0; i<m_targetNbSolvedFields; i++) {
+		sudoku.clearSolution(m_processingOrder[i]);
+	}
+	// check if it's still possible to solve this
+	SudokuSolver solver(
+			m_settings,
+			sudoku);
+	SudokuSolver::Result result = solver.solve();
+
+	// no solution => discard and next try;
+	if(result!=SudokuSolver::Result::solved)
+		return false;
+
+	// multiple solutions => discard and next try;
+	if(solver.getSolved().size()>1)
+		return false;
+
+	m_sudoku = sudoku;
+	m_solution = solver.getSolved()[0];
+	return true;
+}
