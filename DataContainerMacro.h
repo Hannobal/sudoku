@@ -24,7 +24,8 @@ name:         the name of the member (for getter, setter and constructor)
 storageType:  the type for the member variable
 defaultValue: the initialization value set in the default constructor
 IOType:       used as input type for the explicit constructor and the setter
-              and return type of the getter
+              and return type of the getter. Note that the getter is a
+              const member function, so the return type must not violate that.
 
 syntax for additionalDecl: (declaration)
 the declaration string is simply copied into the public section
@@ -166,7 +167,7 @@ DATA_CONTAINER_DERIVED(RectangleSettings,           class name
 	BOOST_PP_TUPLE_ELEM(3,1,elem) BOOST_PP_CAT(m_, BOOST_PP_TUPLE_ELEM(3,0,elem));\
 
 #define DATA_ELEMENT_GETTER(r, data, elem) \
-	BOOST_PP_TUPLE_ELEM(3,3,elem) BOOST_PP_TUPLE_ELEM(3,0,elem)() {return BOOST_PP_CAT(m_, BOOST_PP_TUPLE_ELEM(3,0,elem));}\
+	BOOST_PP_TUPLE_ELEM(3,3,elem) BOOST_PP_TUPLE_ELEM(3,0,elem)() const {return BOOST_PP_CAT(m_, BOOST_PP_TUPLE_ELEM(3,0,elem));}\
 
 #define DATA_ELEMENT_SETTER(r, data, elem) \
 	void BOOST_PP_TUPLE_ELEM(3,0,elem)(BOOST_PP_TUPLE_ELEM(3,3,elem) BOOST_PP_TUPLE_ELEM(3,0,elem)) { BOOST_PP_CAT(m_, BOOST_PP_TUPLE_ELEM(3,0,elem)) = BOOST_PP_TUPLE_ELEM(3,0,elem);}\
