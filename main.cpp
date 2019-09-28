@@ -63,14 +63,28 @@ int main(int argc, char** argv) {
 
 		} else if(std::string(argv[1])=="solve") {
 
-			if(argc<3)
-				throw std::runtime_error("solve needs the filename as additional argument");
+			SudokuSolver::Settings settings;
+			if(argc>3) {
+				if(std::string(argv[3])=="easy")
+					settings = SudokuSolver::Settings::easy;
+				else if(std::string(argv[3])=="medium")
+					settings = SudokuSolver::Settings::medium;
+				else if(std::string(argv[3])=="hard")
+					settings = SudokuSolver::Settings::hard;
+				else if(std::string(argv[3])=="extreme")
+					settings = SudokuSolver::Settings::extreme;
+				else
+					throw std::runtime_error("could not interpret "+std::string(argv[3])+" as difficulty");
+			}
+
+			settings.print();
+
 			std::ifstream file(argv[2]);
 			if(!file)
 				throw std::runtime_error("could not open file "+std::string(argv[2]));
 			Sudoku sudoku;
 			file >> sudoku;
-			SudokuSolver solver(SudokuSolver::Settings(),sudoku);
+			SudokuSolver solver(settings,sudoku);
 			SudokuSolver::Result result = solver.solve();
 			if(result==SudokuSolver::Result::solved) {
 				std::cout << "found " << solver.getSolved().size() << " solution(s):" << std::endl;
@@ -87,32 +101,6 @@ int main(int argc, char** argv) {
 		} else {
 			throw std::runtime_error("unknown keyword "+std::string(argv[1]));
 		}
-
-//		std::ofstream output(argv[1]);
-//		output << sudoku;
-//		output.close();
-//
-//		std::ifstream input(argv[1]);
-//		Sudoku sudokuIn;
-//		input >> sudokuIn;
-//		sudokuIn.print();
-//
-//		SudokuSolver solver(
-//				sudokuIn,
-//				SudokuSolver::Mode::RandomGuessing,
-//				1
-//		);
-//		SudokuSolver::Result result = solver.solve();
-//		if(result==SudokuSolver::Result::solved) {
-//			std::cout << "found " << solver.getSolved().size() << " solution(s):" << std::endl;
-//			for(size_t i=0; i<solver.getSolved().size(); i++) {
-//				std::cout << "solution " << i+1 << ":" << std::endl;
-//				solver.getSolved()[i].print();
-//			}
-//		} else {
-//			std::cout << "Solve result: " << result << std::endl;
-//			solver.getWorkingVersion().print();
-//		}
 
 	} catch(std::exception &e) {
 		std::cout << "ERROR: " << e.what() << std::endl;
